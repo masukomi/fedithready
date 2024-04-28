@@ -2,7 +2,7 @@
 
 An intuitive web tool to seamlessly split and format long texts into manageable chunks for Mastodon threads. 
 
-<img src="https://github.com/masukomi/fedithready/blob/images/images/screenshot_full@2x.png?raw=true" alt=""Screenshot of full interface" width="600">
+<img src="https://github.com/masukomi/fedithready/blob/images/images/screenshot_full@2x.png?raw=true" alt="Screenshot of full interface" width="600">
 
 ## Usage
 Open it in your browser, start typing. 
