@@ -141,37 +141,6 @@ $(document).ready(function() {
         $(this).closest('.post-container').addClass('copied-post');
     });
 
-
-
-
-// Define an array of subtitles and a counter for tracking the current subtitle
-const subtitles = [
-    "Weaving Stories, One Post at a Time.",
-    "Stitching Ideas into Threads.",
-    "From Long Reads to Bitesize Posts!",
-    "Unraveling Thoughts, Thread by Thread.",
-    "Crafting Narratives, Mastodon Style!",
-    "Divide, Post, Conquer!",
-    "Your Ideas, Seamlessly Threaded.",
-    "Transform Monologues into Dialogues!",
-    "Empowering Lengthy Ideas on Mastodon!",
-    "Compose, Split, Share!"
-];
-
-let currentSubtitleIndex = 0;
-
-function changeSubtitle() {
-    currentSubtitleIndex++;
-    if (currentSubtitleIndex >= subtitles.length) {
-        currentSubtitleIndex = 0; // Reset to the beginning
-    }
-    $(".subtitle").text(subtitles[currentSubtitleIndex]);
-}
-
-// Initially set the first subtitle and then change it every 10 seconds
-$(".subtitle").text(subtitles[currentSubtitleIndex]);
-setInterval(changeSubtitle, 10000);
-
 $('#inputText').trigger('input');
 
 });
