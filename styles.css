@@ -93,7 +93,6 @@ ol {  /* Assuming your headlines are h2 elements */
 }
 
 .footer {
-  background-color: rgb(230, 230, 230);
   color: #d2d2d2;
   position: fixed;
   left: 0;
