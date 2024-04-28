@@ -107,3 +107,8 @@ ol {  /* Assuming your headlines are h2 elements */
 .copied-post .alert {
   background-color: #e6ffe6; /* This is a very light green tint */
 }
+
+.line-limited {
+    overflow-y: scroll;
+    max-height: 30rem;
+}
