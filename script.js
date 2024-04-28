@@ -31,7 +31,7 @@ $(document).ready(function() {
         let chunks = [];
 
         // Split the text at manual split points first
-        const manualChunks = text.split('===');
+        const manualChunks = text.split(/_{3,}\n*|\*{3,}\n*|-{3,}\n*/);
         manualChunks.forEach(manualChunk => {
             manualChunk = manualChunk.trim();
             while (manualChunk.length) {
@@ -64,18 +64,18 @@ $(document).ready(function() {
     function formatChunk(chunk) {
         chunk = chunk.replace(/\n/g, '<br>');  // Respect newlines
         chunk = chunk.replace(/(http[s]?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
-        
+
         // Replace @username@domain format
         chunk = chunk.replace(/@(\w+)@([\w.-]+[.][a-z]{2,})/g, function(match, username, domain) {
             return `<a href="https://${domain}/@${username}" target="_blank">${match}</a>`;
         });
-        
+
         // Now replace hashtags and simple @username
         chunk = chunk.replace(/#(\w+)/g, '<a href="https://mastodon.social/tags/$1" target="_blank">#$1</a>');
-        
+
         // Avoid replacing usernames that have already been replaced with their domain.
         chunk = chunk.replace(/@(?!.*<a href)(\w+)/g, '<a href="https://mastodon.social/@$1" target="_blank">@$1</a>');
-        
+
         return chunk;
     }
 
@@ -85,14 +85,15 @@ $(document).ready(function() {
         const totalPosts = chunks.length;
         const paginationEnabled = $('#paginationCheckbox').prop('checked');
 
+
         $('#previewArea').empty();
         chunks.forEach((chunk, index) => {
             const charCount = chunk.length;
             const formattedChunk = formatChunk(chunk);
-            
+
             let paginationText = "";
             if (paginationEnabled) {
-                paginationText = `\n${index + 1}/${totalPosts}`;
+                paginationText = `\n🧵${index + 1}/${totalPosts}`;
             }
 
             $('#previewArea').append(`
@@ -106,6 +107,9 @@ $(document).ready(function() {
                 </div>
             `);
         });
+
+        var objDiv = document.getElementById("scrollingPreview");
+        objDiv.scrollTop = objDiv.scrollHeight;
     }));
 
     $('#applyLimit').on('click', function() {
@@ -121,7 +125,7 @@ $(document).ready(function() {
         textarea.select();
         document.execCommand('copy');
         textarea.remove();
-    
+
         // Change the button text to "Copied"
         $(this).text('Copied');
         // Reset button text after 2 seconds
@@ -135,8 +139,8 @@ $(document).ready(function() {
         // Add the copied-post class to the parent post-container to change its background
         $(this).closest('.post-container').addClass('copied-post');
     });
-    
-    
+
+
 
 
 // Define an array of subtitles and a counter for tracking the current subtitle
@@ -168,5 +172,5 @@ $(".subtitle").text(subtitles[currentSubtitleIndex]);
 setInterval(changeSubtitle, 10000);
 
 $('#inputText').trigger('input');
-    
+
 });
