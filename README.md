@@ -1,8 +1,8 @@
-# Mastothread
+# FediThready 
 
 An intuitive web tool to seamlessly split and format long texts into manageable chunks for Mastodon threads. 
 
-<img src="https://github.com/masukomi/mastothread/blob/images/images/screenshot_full@2x.png?raw=true" alt=""Screenshot of full interface" width="600">
+<img src="https://github.com/masukomi/fedithready/blob/images/images/screenshot_full@2x.png?raw=true" alt=""Screenshot of full interface" width="600">
 
 ## Usage
 Open it in your browser, start typing. 
@@ -13,7 +13,7 @@ You can manually insert a separation between posts by inserting a line with thre
 When you're ready to post, scroll to the top of the preview, click the copy button by the first post, post it, click the copy button by the second post, stick it in a reply to the last post, repeat. As you click copy the post's color will change to let you know you've already grabbed that one.
 
 
-<img src="https://github.com/masukomi/mastothread/blob/images/images/screenshot_copied_toot@2x.png?raw=true" alt=""Screenshot of copied toot" width="300">
+<img src="https://github.com/masukomi/fedithready/blob/images/images/screenshot_copied_toot@2x.png?raw=true" alt=""Screenshot of copied toot" width="300">
 
 If you're a geek who wants to add in the functionality to let it post automatically I'll happily merge it.
 

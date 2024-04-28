@@ -111,3 +111,13 @@ ol {  /* Assuming your headlines are h2 elements */
     overflow-y: scroll;
     max-height: 30rem;
 }
+
+.header {
+
+}
+
+#header-icon {
+  height: 3rem;
+  align: bottom;
+  padding-right: 1rem;
+}
