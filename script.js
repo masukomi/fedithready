@@ -62,11 +62,10 @@ $(document).ready(function() {
     }
 
     function formatChunk(chunk) {
-        chunk = chunk.replace(/\n/g, '<br>');  // Respect newlines
-        chunk = chunk.replace(/(http[s]?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+        chunk = chunk.replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank">$1</a>');
 
         // Replace @username@domain format
-        chunk = chunk.replace(/@(\w+)@([\w.-]+[.][a-z]{2,})/g, function(match, username, domain) {
+        chunk = chunk.replace(/@(\S+)@(\S+)/g, function(match, username, domain) {
             return `<a href="https://${domain}/@${username}" target="_blank">${match}</a>`;
         });
 
@@ -74,7 +73,9 @@ $(document).ready(function() {
         chunk = chunk.replace(/#(\w+)/g, '<a href="https://mastodon.social/tags/$1" target="_blank">#$1</a>');
 
         // Avoid replacing usernames that have already been replaced with their domain.
-        chunk = chunk.replace(/@(?!.*<a href)(\w+)/g, '<a href="https://mastodon.social/@$1" target="_blank">@$1</a>');
+        // chunk = chunk.replace(/@(?!.*<a href)(\w+)/g, '<a href="https://mastodon.social/@$1" target="_blank">@$1</a>');
+
+        chunk = chunk.replace(/\n/g, '<br>');  // Respect newlines
 
         return chunk;
     }
