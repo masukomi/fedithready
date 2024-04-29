@@ -31,6 +31,14 @@ That's it.
 - **Real-time Preview**: Visualize how your text will appear as separate Mastodon posts.
 - **Copy to Clipboard**: Quick copy buttons for every chunk, which turn green upon being clicked to indicate a successful copy action.
 
+## Future Plans
+
+- Fix [issues](https://github.com/masukomi/fedithready/) as I encounter them. 
+- Add accessibility features so that it works well for people with screen readers 
+- Merge anything cool that comes via Pull Request. 
+
+This is just about having a simple and useful tool. I'm not trying to build it into anything amazing. I'm happy to merge any useful bug fixes or features. I'm happy to see you fork it and go off in a completely different direction. 
+
 ## Technology Stack
 
 - **HTML/CSS**: Basic building blocks of the web.
