@@ -68,6 +68,23 @@ $(document).ready(function() {
         return limit;
     }
 
+    function getLastSentenceEnd(text){
+        // const endChars = [
+        //     "⁉️", "‼️","❗",
+        //     "?", ".", "…", "‽"
+        // ].map((x)=>x.codePointAt(0).toString(16))
+
+        var emojilessRegexp = new RegExp('[\?\.…!‽\n]\\s?', 'g')
+        var lastIdx = null;
+        var iterator = text.matchAll(emojilessRegexp);
+        while(x = iterator.next()){
+            if (x.value === undefined){break;}
+            lastIdx = x.value.index;
+        }
+        if (lastIdx !== null){lastIdx += 1;}
+        return lastIdx; // may be null
+
+    }
 
     function findSlicePoint(text, maxChars, currentChunk, maxChunks) {
         // maxAbandonableChars is an arbitrary number of characters that
@@ -79,7 +96,6 @@ $(document).ready(function() {
         if (isPaginationEnabled()){
             charLimit -= getPaginationTextLength(currentChunk, maxChunks);
         }
-        console.log(`XXX charLimit: ${charLimit} maxChars: ${maxChars}`);
         if (getTrueTextLength(text) <= charLimit) {
             // the current section of this chunk of the manual chunk
             // is already shorter than the max
@@ -87,31 +103,15 @@ $(document).ready(function() {
         }
 
         let sliceEnd = charLimit;
-        // we could do something fancy with regexp to get the last
-        // space including tabs and other not newline things
-        // but it's just not worth the cost.
+        let lastSentenceEnd = attemptSentenceEndings() ? getLastSentenceEnd(text.substring(0,maxChars)) : null;
+        if (lastSentenceEnd === null){ lastSentenceEnd = text.length }
         let lastSpace = text.lastIndexOf(" ", sliceEnd);
-        // if there are no spaces then the end of the text
         if (lastSpace == -1){lastSpace = text.length;}
-        let lastNewLine = text.lastIndexOf("\n", sliceEnd);
-        if (lastNewLine == -1){ lastNewLine = lastSpace; }
-        let difference = lastSpace - lastNewLine;
+        // let difference = lastSentenceEnd - lastSpace;
+        let difference = lastSpace - lastSentenceEnd;
 
-        if (difference > 0){
-
-
-            // backtrack to the last newline or space because we don't want
-            // to split in the middle of a word.
-            //
-            // Apologies to folks writing Chinese and other languages
-            // that don't need spaces. I dunno what to do for you.
-            if (difference < maxAbandonableChars){
-                // it's nicer to break on a newline near the end
-                // than a space in the middle of a sentence that's closer
-                // to the max characters.
-
-                sliceEnd = lastNewLine;
-            }
+        if (difference > 0 && difference < maxAbandonableChars){
+            sliceEnd = lastSentenceEnd;
         } else {
             sliceEnd = lastSpace;
         }
@@ -151,7 +151,6 @@ $(document).ready(function() {
                     break;
                 }
 
-                console.log(`XXX slicing at ${slicePoint} out of ${manualChunk.length}`);
                 let startChunk = manualChunk.slice(0, slicePoint);
                 chunks.push(startChunk);
                 // replace the think we're chunking with everything
