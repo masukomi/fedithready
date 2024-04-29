@@ -18,43 +18,119 @@ $(document).ready(function() {
                .replace(/>/g, '&gt;');
     }
 
-    function getCharacterLimit() {
+    function isPaginationEnabled() {
+        return $('#paginationCheckbox').prop('checked');
+    }
+
+    function getPaginationText(index, totalPosts) {
+        return `\n🧵${index + 1}/${totalPosts}`;
+    }
+
+    // naiveChunkCount is a naïve approximation of how many chunks we'll end up with.
+    // It will be more than we really get BUT better to overestimate than underestimate.
+    // We need this to see how many characters the pagination will take up at the end
+    // of each post.
+    function getNaiveChunkCount(text){
+        let unmodifiedCharLimit = getUnmodifiedCharacterLimit();
+        // example of what we're doing:
+        // "abcd".match(new RegExp(r1, "g")) => Array [ "abc", "d" ]
+        let r1 = `.{1,${unmodifiedCharLimit}}`;
+
+        let naiveChunkCount = text.match(new RegExp(r1, "g")).length;
+    }
+
+    function getPaginationTextLength(index, totalPosts) {
+        if (!isPaginationEnabled()){return 0;}
+
+        // Begin the dark magic required to convince JavaScript to count
+        // characters instead of codepoints.
+        // example: "🧵 1/10".length should be 6 but the emoji makes it 7
+        // worse: "👩‍❤️‍💋‍👩".length === 11 because... JavaScript
+        return [...getPaginationText(index, totalPosts)].length;
+    }
+    function getUnmodifiedCharacterLimit() {
         let limit = parseInt($('#charLimit').val(), 10);
         if (isNaN(limit) || limit <= 0) {
             limit = 500;
         }
+
         return limit;
     }
 
-    function splitText(text) {
-        const charLimit = getCharacterLimit();
-        let chunks = [];
 
+    function splitText(text) {
+        if (text === undefined || text === ""){return [];}
+
+        const unmodifiedCharLimit = getUnmodifiedCharacterLimit();
         // Split the text at manual split points first
         const manualChunks = text.split(/_{3,}\n*|\*{3,}\n*|-{3,}\n*/);
+        const naiveChunkCount = getNaiveChunkCount(text) + manualChunks.length;
+        let chunks = [];
+
+        // loop over the manual chunks
         manualChunks.forEach(manualChunk => {
+            // remove leading and trailing whitespace in manual chunks
+            // we do this because users are likely
+            // to put whitespace around dividers
+            //     blah blah
+            //
+            //     ---
+            //
+            //     blah blah
             manualChunk = manualChunk.trim();
-            while (manualChunk.length) {
-                if (manualChunk.length <= charLimit) {
-                    chunks.push(manualChunk);
-                    break;
+            while (manualChunk.length > 0) {
+                let charLimit = unmodifiedCharLimit;
+                if (isPaginationEnabled()){
+                    charLimit -= getPaginationTextLength(chunks.length + 1, naiveChunkCount);
                 }
 
-                let chunk;
-                let sliceEnd = charLimit;
-                let lastPeriod = manualChunk.lastIndexOf('.', sliceEnd);
-                let lastSpace = manualChunk.lastIndexOf(' ', sliceEnd);
+                if (manualChunk.length <= charLimit) {
+                    // the current section of this chunk of the manual chunk
+                    // is already shorter than the max
+                    chunks.push(manualChunk);
+                    break;
+                    // exit the sub-chunking while loop but
+                    // not the greater loop over all manual chunks
+                }
 
-                if (lastPeriod > charLimit - 100) {
-                    sliceEnd = lastPeriod + 1;
+                let sliceEnd = charLimit;
+                // we could do something fancy with regexp to get the last
+                // space including tabs and other not newline things
+                // but it's just not worth the cost.
+                let lastSpace = manualChunk.lastIndexOf(" ", sliceEnd);
+                let lastNewLine = manualChunk.lastIndexOf("\n", sliceEnd);
+                if (lastNewLine == -1){ lastNewLine = lastSpace }
+                let difference = lastSpace - lastNewLine;
+
+                // maxDifference is an arbitrary number of characters that
+                // we're willing to sacrifice at the end of a chunk
+                // in order to improve readability. This number may
+                // need to be tweaked with usage.
+                const maxDifference = 60;
+
+
+                // backtrack to the last newline or space because we don't want
+                // to split in the middle of a word.
+                //
+                // Apologies to folks writing Chinese and other languages
+                // that don't need spaces. I dunno what to do for you.
+                if (difference < maxDifference){
+                    // it's nicer to break on a newline near the end
+                    // than a space in the middle of a sentence that's closer
+                    // to the max characters.
+
+                    sliceEnd = lastNewLine;
                 } else if (lastSpace !== -1) {
                     sliceEnd = lastSpace;
                 }
 
-                chunk = manualChunk.slice(0, sliceEnd);
+
+                let startChunk = manualChunk.slice(0, sliceEnd);
+                chunks.push(startChunk);
+                // replace the think we're chunking with everything
+                // after the chunk we just made.
                 manualChunk = manualChunk.slice(sliceEnd).trim();
 
-                chunks.push(chunk);
             }
         });
 
@@ -84,7 +160,7 @@ $(document).ready(function() {
         const text = $(this).val();
         const chunks = splitText(text) || [];
         const totalPosts = chunks.length;
-        const paginationEnabled = $('#paginationCheckbox').prop('checked');
+        const paginationEnabled = isPaginationEnabled();
 
 
         $('#previewArea').empty();
@@ -94,7 +170,7 @@ $(document).ready(function() {
 
             let paginationText = "";
             if (paginationEnabled) {
-                paginationText = `\n🧵${index + 1}/${totalPosts}`;
+                paginationText = getPaginationText(index, totalPosts);
             }
 
             $('#previewArea').append(`
