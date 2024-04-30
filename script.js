@@ -69,12 +69,7 @@ $(document).ready(function() {
     }
 
     function getLastSentenceEnd(text){
-        // const endChars = [
-        //     "⁉️", "‼️","❗",
-        //     "?", ".", "…", "‽"
-        // ].map((x)=>x.codePointAt(0).toString(16))
-
-        var emojilessRegexp = new RegExp('[\?\.…!‽"\n]\\s?', 'g')
+        var emojilessRegexp = new RegExp('(?:[\?\.…!‽\n](?!["\'])\\s?|["\'](?=[ \z]))', 'g')
         var lastIdx = null;
         var iterator = text.matchAll(emojilessRegexp);
         while(x = iterator.next()){
