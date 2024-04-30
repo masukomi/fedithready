@@ -74,7 +74,7 @@ $(document).ready(function() {
         //     "?", ".", "…", "‽"
         // ].map((x)=>x.codePointAt(0).toString(16))
 
-        var emojilessRegexp = new RegExp('[\?\.…!‽\n]\\s?', 'g')
+        var emojilessRegexp = new RegExp('[\?\.…!‽"\n]\\s?', 'g')
         var lastIdx = null;
         var iterator = text.matchAll(emojilessRegexp);
         while(x = iterator.next()){
