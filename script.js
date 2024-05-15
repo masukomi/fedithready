@@ -69,14 +69,13 @@ $(document).ready(function() {
     }
 
     function getLastSentenceEnd(text){
-        var sentenceEndingsRegexp = new RegExp('(?:[\?\.…!‽\n⁉️‼️❗](?!["\'])\\s?|["\'](?= ))', 'g')
+        var sentenceEndingsRegexp = new RegExp('(?:[\?\.…!‽\n⁉️‼️❗](?!["\'])\\s?|.{3,}|["\'](?= ))', 'g')
         var lastIdx = null;
         var iterator = text.matchAll(sentenceEndingsRegexp);
         while(x = iterator.next()){
             if (x.value === undefined){break;}
             lastIdx = x.value.index;
         }
-        if (lastIdx !== null){lastIdx += 1;}
         return lastIdx; // may be null
 
     }
