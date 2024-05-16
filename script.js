@@ -86,14 +86,16 @@ $(document).ready(function() {
         // in order to improve readability. This number may
         // need to be tweaked with usage.
         const maxAbandonableChars = 60;
-        let charLimit = maxChars;
+        // subtract 1 char for the "…" (horizontal elipsis) that may be inserted
+        // at the end and 1 more because it may be inserted at the beginning too
+        let charLimit = maxChars - 2;
         if (isPaginationEnabled()){
             charLimit -= getPaginationTextLength(currentChunk, maxChunks);
         }
         if (getTrueTextLength(text) <= charLimit) {
             // the current section of this chunk of the manual chunk
             // is already shorter than the max
-            return text.length; // false length for splitting purposes
+            return {"sliceEnd": text.length, "reason": "end"};
         }
 
         let sliceEnd = charLimit;
@@ -105,11 +107,16 @@ $(document).ready(function() {
         let difference = lastSpace - lastSentenceEnd;
 
         if (difference > 0 && difference < maxAbandonableChars){
-            sliceEnd = lastSentenceEnd;
-        } else {
-            sliceEnd = lastSpace;
+            return {
+                "sliceEnd": lastSentenceEnd,
+                "reason": "sentenceEnd"
+            }
         }
-        return sliceEnd;
+
+        return {
+            "sliceEnd": lastSpace,
+            "reason": "space"
+        }
     }
 
     function splitText(text) {
@@ -119,6 +126,10 @@ $(document).ready(function() {
         // Split the text at manual split points first
         const manualChunks = text.split(/_{3,}\n*|\*{3,}\n*|-{3,}\n*/);
         const naiveChunkCount = getNaiveChunkCount(text) + manualChunks.length;
+
+        /* chunks will be an array of objects.
+         * each will have sliceEnd, & reason
+         */
         let chunks = [];
 
         // loop over the manual chunks
@@ -133,20 +144,22 @@ $(document).ready(function() {
             //     blah blah
             manualChunk = manualChunk.trim();
             while (manualChunk.length > 0) { // true length doesn't matter here
-                let slicePoint = findSlicePoint(
+                let sliceData = findSlicePoint(
                                     manualChunk,
                                     unmodifiedCharLimit,
                                     chunks.length + 1,
                                     naiveChunkCount
                                 );
+                let slicePoint = sliceData["sliceEnd"];
 
                 if (slicePoint == manualChunk.length){
-                    chunks.push(manualChunk);
+                    chunks.push(Object.assign({}, sliceData, {"reason": "end", "text": manualChunk}));
                     break;
                 }
 
                 let startChunk = manualChunk.slice(0, slicePoint);
-                chunks.push(startChunk);
+                chunks.push(Object.assign({}, sliceData, {"text": startChunk}));
+
                 // replace the think we're chunking with everything
                 // after the chunk we just made.
                 manualChunk = manualChunk.slice(slicePoint);
@@ -157,23 +170,23 @@ $(document).ready(function() {
         return chunks;
     }
 
-    function formatChunk(chunk) {
-        chunk = chunk.replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank">$1</a>');
+    function formatChunkText(chunkText) {
+        chunkText = chunkText.replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank">$1</a>');
 
         // Replace @username@domain format
-        chunk = chunk.replace(/@(\S+)@(\S+)/g, function(match, username, domain) {
+        chunkText = chunkText.replace(/@(\S+)@(\S+)/g, function(match, username, domain) {
             return `<a href="https://${domain}/@${username}" target="_blank">${match}</a>`;
         });
 
         // Now replace hashtags and simple @username
-        chunk = chunk.replace(/#(\w+)/g, '<a href="https://mastodon.social/tags/$1" target="_blank">#$1</a>');
+        chunkText = chunkText.replace(/#(\w+)/g, '<a href="https://mastodon.social/tags/$1" target="_blank">#$1</a>');
 
         // Avoid replacing usernames that have already been replaced with their domain.
-        // chunk = chunk.replace(/@(?!.*<a href)(\w+)/g, '<a href="https://mastodon.social/@$1" target="_blank">@$1</a>');
+        // chunkText = chunkText.replace(/@(?!.*<a href)(\w+)/g, '<a href="https://mastodon.social/@$1" target="_blank">@$1</a>');
 
-        chunk = chunk.replace(/\n/g, '<br>');  // Respect newlines
+        chunkText = chunkText.replace(/\n/g, '<br>');  // Respect newlines
 
-        return chunk;
+        return chunkText;
     }
 
     function updateLocalStorage(text) {
@@ -222,9 +235,27 @@ $(document).ready(function() {
 
 
         $('#previewArea').empty();
-        chunks.forEach((chunk, index) => {
-            const charCount = chunk.length;
-            const formattedChunk = formatChunk(chunk);
+        // chunks.forEach((chunk, index) => {
+        for (let index = 0; index < chunks.length; index++) {
+            let chunk = chunks[index]
+            /*
+               chunk is an object with 3 keys
+               sliceEnd: we don't care about that here
+               text: the text we need
+               reason: this can be sentenceEnd, space, or end
+                       "space" indicates that we broke in the middle
+                       of a sentence and thus should inert an elipsis.
+            */
+            const charCount = chunk.text.length;
+
+            if (chunk.reason == "space") {
+                chunk.text += "…";
+            }
+            if (chunks.length > 1 && index > 0 && chunks[index - 1]["reason"] == "space"){
+                chunk.text = "…" + chunk.text;
+            }
+
+            const formattedChunk = formatChunkText(chunk.text);
 
             let paginationText = "";
             if (paginationEnabled) {
@@ -234,14 +265,15 @@ $(document).ready(function() {
             $('#previewArea').append(`
                 <div class="post-container">
                     <div class="alert alert-secondary">
-                        <button class="btn btn-secondary btn-copy" data-text="${escapeHTML(chunk + paginationText)}">Copy</button>
+                        <button class="btn btn-secondary btn-copy" data-text="${escapeHTML(chunk.text + paginationText)}">Copy</button>
                         <span class="char-count">${charCount} chars</span>
                         ${formattedChunk}
                         ${paginationText ? `<br><span class="post-number">${paginationText}</span>` : ''}
                     </div>
                 </div>
             `);
-        });
+        // });
+        }
 
         var objDiv = document.getElementById("scrollingPreview");
         objDiv.scrollTop = objDiv.scrollHeight;
