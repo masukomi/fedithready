@@ -30,11 +30,18 @@
                       placeholder="Type your thread here."
                       rows="10"></textarea>
             <div class="settings mt-3 d-flex justify-content-between">
-                <div>
+                <div style="width: 100%">
                     Limit: <input type="number" id="charLimit" value="500" min="1">
                     <br />Include counter: <input type="checkbox" id="paginationCheckbox" checked>
                     <br />Attempt sentence endings: <input type="checkbox" id="sentenceEndingsCheckbox" checked>
-                <button id="applyLimit" class="btn btn-primary btn-copy-style" style="display: inline-block; position: absolute; right: 2rem;">Apply</button>
+                <button id="applyLimit" class="btn btn-primary btn-copy-style" style="float: right;">Apply</button>
+                </div>
+            </div>
+
+            <div class="settings mt-3 d-flex justify-content-between">
+                <div style="width: 100%;">
+                    <hr />
+                    <button id="clearText" class="btn btn-warning btn-copy-style" >Clear All Text</button>
                 </div>
             </div>
 

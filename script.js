@@ -176,11 +176,49 @@ $(document).ready(function() {
         return chunk;
     }
 
+    function updateLocalStorage(text) {
+        if (typeof(Storage) !== "undefined") {
+            localStorage.setItem('inputText', text);
+        }
+    }
+
+    function retrieveLocalStorage() {
+        if (typeof(Storage) !== "undefined") {
+            return localStorage.getItem('inputText');
+        } else {
+            return null;
+        }
+    }
+
+    function checkForLocalStorageText(){
+        // retrieve from localStorage if #inputText is empty
+        // this is useful for when the page is refreshed
+        if ($('#inputText').val() === "") {
+            const text = retrieveLocalStorage();
+            if (text !== null) {
+                $('#inputText').val(text);
+                $('#inputText').trigger('input');
+            }
+        }
+    }
+
+    function clear(){
+        updateLocalStorage(null);
+        $('#inputText').val('');
+        $('#inputText').trigger('input');
+    }
+
+    /// END OF STANDARD FUNCTIONS
+
     $('#inputText').on('input', debounce(function() {
         const text = $(this).val();
         const chunks = splitText(text) || [];
         const totalPosts = chunks.length;
         const paginationEnabled = isPaginationEnabled();
+
+        updateLocalStorage(text);
+
+
 
 
         $('#previewArea').empty();
@@ -214,6 +252,10 @@ $(document).ready(function() {
         $('#inputText').trigger('input');
     });
 
+    $('#clearText').on('click', function() {
+        confirm("Are you sure you want to clear the text?") && clear();
+    });
+
     $(document).on('click', '.btn-copy', function() {
         const textToCopy = $(this).data('text');
         const textarea = $('<textarea>');
@@ -237,6 +279,10 @@ $(document).ready(function() {
         $(this).closest('.post-container').addClass('copied-post');
     });
 
-$('#inputText').trigger('input');
+    checkForLocalStorageText();
+
+    $('#inputText').trigger('input');
+
+
 
 });
