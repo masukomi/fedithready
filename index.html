@@ -23,7 +23,10 @@
 
     <div class="row">
         <div class="col-md-6">
-            <h3>Write Your Text</h3>
+
+            <button id="clearText" class="btn btn-warning btn-copy-style"  style="float: right; display: inline-block; position: relative; top: 0.75rem;">Clear All Text</button>
+            <h3 style="display: inline-block; float: left;">Write Your Text</h3>
+
             <textarea id="inputText"
                       class="form-control"
                       autofocus="true"
@@ -35,13 +38,6 @@
                     <br />Include counter: <input type="checkbox" id="paginationCheckbox" checked>
                     <br />Attempt sentence endings: <input type="checkbox" id="sentenceEndingsCheckbox" checked>
                 <button id="applyLimit" class="btn btn-primary btn-copy-style" style="float: right;">Apply</button>
-                </div>
-            </div>
-
-            <div class="settings mt-3 d-flex justify-content-between">
-                <div style="width: 100%;">
-                    <hr />
-                    <button id="clearText" class="btn btn-warning btn-copy-style" >Clear All Text</button>
                 </div>
             </div>
 
