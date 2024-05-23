@@ -19,17 +19,20 @@
 <div class="container mt-3">
     <div class="header">
         <h1 class="display-4"><img id="header-icon" src="fedithready-favicon.png" aria-hidden="true"  />FediThready</h1>
+        <span class="subheading">Make long text into post sized chunks.</span>
     </div>
 
     <div class="row">
         <div class="col-md-6">
 
-            <button id="clearText" class="btn btn-warning btn-copy-style"  style="float: right; display: inline-block; position: relative; top: 0.75rem;">Clear All Text</button>
             <h3 style="display: inline-block; float: left;">Write Your Text</h3>
+            <button id="clearText"
+                    class="btn btn-warning btn-copy-style"
+                    style="float: right; display: inline-block; position: relative; top: 0.75rem;"
+                    aria-controls="inputText">Clear Current Text</button>
 
             <textarea id="inputText"
                       class="form-control"
-                      autofocus="true"
                       placeholder="Type your thread here."
                       rows="10"></textarea>
 
