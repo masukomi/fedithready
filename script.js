@@ -31,6 +31,15 @@ $(document).ready(function() {
         return `\n🧵${index + 1}/${totalPosts}`;
     }
 
+    // Similar to getPaginationText but intended for the copy button.
+    // We don't want emojis in this context because it may be read by screen readers.
+    function getCopyText(index, totalPosts) {
+        if (index === undefined || totalPosts === undefined) { return "" };
+        return `Copy chunk ${index + 1} of ${totalPosts}`;
+
+    }
+
+
     // naiveChunkCount is a naïve approximation of how many chunks we'll end up with.
     // It will be more than we really get BUT better to overestimate than underestimate.
     // We need this to see how many characters the pagination will take up at the end
@@ -261,11 +270,16 @@ $(document).ready(function() {
             if (paginationEnabled) {
                 paginationText = getPaginationText(index, totalPosts);
             }
+            let copyButtonText = getCopyText(index, totalPosts);
 
             $('#previewArea').append(`
                 <div class="post-container">
                     <div class="alert alert-secondary">
-                        <button class="btn btn-secondary btn-copy" data-text="${escapeHTML(chunk.text + paginationText)}">Copy</button>
+                        <button
+                            class="btn btn-secondary btn-copy"
+                            data-text="${escapeHTML(chunk.text + paginationText)}"
+                            aria-pressed="false"
+                        >${copyButtonText}</button>
                         <span class="char-count">${charCount} chars</span>
                         ${formattedChunk}
                         ${paginationText ? `<br><span class="post-number">${paginationText}</span>` : ''}
@@ -299,9 +313,11 @@ $(document).ready(function() {
 
         // Change the button text to "Copied"
         $(this).text('Copied');
+        // tell screen-readers that the button has been pressed
+        $(this)[0].ariaPressed = true;
         // Reset button text after 2 seconds
         setTimeout(() => {
-            $(this).text('Copy');
+            $(this).text('Re-copy');
         }, 2000);
 
         // Add the copied class to the button to change its color
