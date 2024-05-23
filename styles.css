@@ -121,3 +121,7 @@ ol {  /* Assuming your headlines are h2 elements */
   align: bottom;
   padding-right: 1rem;
 }
+
+label {
+  user-select: none;
+}
