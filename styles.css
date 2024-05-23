@@ -77,6 +77,9 @@ ol {  /* Assuming your headlines are h2 elements */
   to   { opacity: 1; }
 }
 
+.subheading {
+  font-style: italic;
+}
 .subtitle {
   animation-name: fadeIn;
   animation-duration: 1s;
