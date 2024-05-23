@@ -280,7 +280,7 @@ $(document).ready(function() {
                             data-text="${escapeHTML(chunk.text + paginationText)}"
                             aria-pressed="false"
                         >${copyButtonText}</button>
-                        <span class="char-count">${charCount} chars</span>
+                        <span class="char-count">${charCount} characters</span>
                         ${formattedChunk}
                         ${paginationText ? `<br><span class="post-number">${paginationText}</span>` : ''}
                     </div>
