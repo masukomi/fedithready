@@ -5,7 +5,7 @@ An intuitive web tool to seamlessly split and format long texts into manageable 
 <img src="https://github.com/masukomi/fedithready/blob/images/images/screenshot_full@2x.png?raw=true" alt="Screenshot of full interface" width="600">
 
 ## Usage
-Open it in your browser, start typing. 
+Open the HTML file in your browser, start typing. 
 Posts will display on the right, and be automatically divided when you reach the character limit. 
 
 You can manually insert a separation between posts by inserting a line with three or more hyphens (`---`), underscores (`___`), or asterisks (`***`)
