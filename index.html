@@ -32,14 +32,24 @@
                       autofocus="true"
                       placeholder="Type your thread here."
                       rows="10"></textarea>
+
             <div class="settings mt-3 d-flex justify-content-between">
                 <div style="width: 100%">
-                    Limit: <input type="number" id="charLimit" value="500" min="1">
-                    <br />Include counter: <input type="checkbox" id="paginationCheckbox" checked>
-                    <br />Attempt sentence endings: <input type="checkbox" id="sentenceEndingsCheckbox" checked>
-                <button id="applyLimit" class="btn btn-primary btn-copy-style" style="float: right;">Apply</button>
-                </div>
+                    <label for="charLimit">Character Limit</label>:
+                    <input type="number" id="charLimit" value="500" min="1">
+
+                    <br />
+                    <label for="paginationCheckbox">Include counter</label>:
+                    <input type="checkbox" id="paginationCheckbox" checked>
+
+                    <br /><label for="sentenceEndingsCheckbox">Attempt sentence endings</label>:
+                    <input type="checkbox" id="sentenceEndingsCheckbox" checked>
+
+                    <button id="applyLimit" class="btn btn-primary btn-copy-style" style="float: right;">Apply Settings</button>
             </div>
+
+    </div>
+
 
             <!-- Advice section -->
 
