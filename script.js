@@ -311,13 +311,14 @@ $(document).ready(function() {
         document.execCommand('copy');
         textarea.remove();
 
+        var originalText = $(this).text();
         // Change the button text to "Copied"
         $(this).text('Copied');
         // tell screen-readers that the button has been pressed
         $(this)[0].ariaPressed = true;
         // Reset button text after 2 seconds
         setTimeout(() => {
-            $(this).text('Re-copy');
+            $(this).text("Re-" + originalText);
         }, 2000);
 
         // Add the copied class to the button to change its color
