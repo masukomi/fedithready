@@ -305,7 +305,6 @@ $(document).ready(function() {
                        "space" indicates that we broke in the middle
                        of a sentence and thus should inert an elipsis.
             */
-            const charCount = chunk.text.length;
 
             if (chunk.reason == "space") {
                 chunk.text += "…";
@@ -329,6 +328,9 @@ $(document).ready(function() {
                 paginationText = getPaginationText(index, totalPosts);
             }
             let copyButtonText = getCopyText(index, totalPosts);
+
+            // Calculate character count from the full post content
+            const charCount = getTrueTextLength(copyText + paginationText);
 
             $('#previewArea').append(`
                 <div class="post-container">
