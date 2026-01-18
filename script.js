@@ -26,6 +26,25 @@ $(document).ready(function() {
         return $('#sentenceEndingsCheckbox').prop('checked');
     }
 
+    function includeUsernamesInReplies() {
+        return $('#includeUsernamesCheckbox').prop('checked');
+    }
+
+    // Extract all @username@domain mentions from text
+    function extractUsernames(text) {
+        const usernameRegex = /@\S+@\S+/g;
+        const matches = text.match(usernameRegex);
+        if (!matches) return [];
+        // Return unique usernames only
+        return [...new Set(matches)];
+    }
+
+    // Get the username prefix string to prepend to subsequent posts
+    function getUsernamePrefix(usernames) {
+        if (!usernames || usernames.length === 0) return "";
+        return usernames.join(" ") + "\n";
+    }
+
     function getPaginationText(index, totalPosts) {
         if (index === undefined || totalPosts === undefined) { return "" };
         return `\n🧵${index + 1}/${totalPosts}`;
@@ -89,7 +108,7 @@ $(document).ready(function() {
 
     }
 
-    function findSlicePoint(text, maxChars, currentChunk, maxChunks) {
+    function findSlicePoint(text, maxChars, currentChunk, maxChunks, usernamePrefixLength) {
         // maxAbandonableChars is an arbitrary number of characters that
         // we're willing to sacrifice at the end of a chunk
         // in order to improve readability. This number may
@@ -100,6 +119,10 @@ $(document).ready(function() {
         let charLimit = maxChars - 2;
         if (isPaginationEnabled()){
             charLimit -= getPaginationTextLength(currentChunk, maxChunks);
+        }
+        // Subtract username prefix length for subsequent chunks
+        if (usernamePrefixLength && usernamePrefixLength > 0) {
+            charLimit -= usernamePrefixLength;
         }
         if (getTrueTextLength(text) <= charLimit) {
             // the current section of this chunk of the manual chunk
@@ -135,11 +158,15 @@ $(document).ready(function() {
         // Split the text at manual split points first
         const manualChunks = text.split(/_{3,}\n*|\*{3,}\n*|-{3,}\n*/);
         const naiveChunkCount = getNaiveChunkCount(text) + manualChunks.length;
+        const shouldIncludeUsernames = includeUsernamesInReplies();
 
         /* chunks will be an array of objects.
          * each will have sliceEnd, & reason
+         * If username inclusion is enabled, also stores usernamePrefix for subsequent chunks
          */
         let chunks = [];
+        let usernamePrefixLength = 0;
+        let usernamePrefix = "";
 
         // loop over the manual chunks
         manualChunks.forEach(manualChunk => {
@@ -153,21 +180,38 @@ $(document).ready(function() {
             //     blah blah
             manualChunk = manualChunk.trim();
             while (manualChunk.length > 0) { // true length doesn't matter here
+                // For chunks after the first, pass the username prefix length
+                let prefixLengthForThisChunk = chunks.length > 0 ? usernamePrefixLength : 0;
+
                 let sliceData = findSlicePoint(
                                     manualChunk,
                                     unmodifiedCharLimit,
                                     chunks.length + 1,
-                                    naiveChunkCount
+                                    naiveChunkCount,
+                                    prefixLengthForThisChunk
                                 );
                 let slicePoint = sliceData["sliceEnd"];
 
                 if (slicePoint == manualChunk.length){
                     chunks.push(Object.assign({}, sliceData, {"reason": "end", "text": manualChunk}));
+                    // Extract usernames after first chunk is added
+                    if (chunks.length === 1 && shouldIncludeUsernames) {
+                        const usernames = extractUsernames(chunks[0].text);
+                        usernamePrefix = getUsernamePrefix(usernames);
+                        usernamePrefixLength = getTrueTextLength(usernamePrefix);
+                    }
                     break;
                 }
 
                 let startChunk = manualChunk.slice(0, slicePoint);
                 chunks.push(Object.assign({}, sliceData, {"text": startChunk}));
+
+                // Extract usernames after first chunk is added
+                if (chunks.length === 1 && shouldIncludeUsernames) {
+                    const usernames = extractUsernames(chunks[0].text);
+                    usernamePrefix = getUsernamePrefix(usernames);
+                    usernamePrefixLength = getTrueTextLength(usernamePrefix);
+                }
 
                 // replace the think we're chunking with everything
                 // after the chunk we just made.
@@ -175,6 +219,11 @@ $(document).ready(function() {
 
             }
         });
+
+        // Store the username prefix on the result for use in rendering
+        if (chunks.length > 0 && shouldIncludeUsernames) {
+            chunks.usernamePrefix = usernamePrefix;
+        }
 
         return chunks;
     }
@@ -237,6 +286,7 @@ $(document).ready(function() {
         const chunks = splitText(text) || [];
         const totalPosts = chunks.length;
         const paginationEnabled = isPaginationEnabled();
+        const usernamePrefix = chunks.usernamePrefix || "";
 
         updateLocalStorage(text);
 
@@ -264,7 +314,15 @@ $(document).ready(function() {
                 chunk.text = "…" + chunk.text;
             }
 
-            const formattedChunk = formatChunkText(chunk.text);
+            // Prepend username prefix to subsequent posts (not the first one)
+            let displayText = chunk.text;
+            let copyText = chunk.text;
+            if (index > 0 && usernamePrefix) {
+                displayText = usernamePrefix + chunk.text;
+                copyText = usernamePrefix + chunk.text;
+            }
+
+            const formattedChunk = formatChunkText(displayText);
 
             let paginationText = "";
             if (paginationEnabled) {
@@ -277,7 +335,7 @@ $(document).ready(function() {
                     <div class="alert alert-secondary">
                         <button
                             class="btn btn-secondary btn-copy"
-                            data-text="${escapeHTML(chunk.text + paginationText)}"
+                            data-text="${escapeHTML(copyText + paginationText)}"
                             aria-pressed="false"
                         >${copyButtonText}</button>
                         <span class="char-count">${charCount} characters</span>
@@ -294,6 +352,11 @@ $(document).ready(function() {
     }));
 
     $('#applyLimit').on('click', function() {
+        // Trigger the input event to refresh the preview
+        $('#inputText').trigger('input');
+    });
+
+    $('#includeUsernamesCheckbox').on('change', function() {
         // Trigger the input event to refresh the preview
         $('#inputText').trigger('input');
     });
