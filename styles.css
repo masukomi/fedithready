@@ -97,7 +97,6 @@ ol {  /* Assuming your headlines are h2 elements */
 
 .footer {
   color: #d2d2d2;
-  position: fixed;
   left: 0;
   bottom: 0;
   width: 100%;
@@ -127,4 +126,110 @@ ol {  /* Assuming your headlines are h2 elements */
 
 label {
   user-select: none;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 90%;
+  position: relative;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.modal-content p {
+  margin-bottom: 10px;
+  color: #666;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+  color: #888;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: #333;
+}
+
+.modal-error {
+  color: #dc3545;
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+
+#fileProtocolError {
+  text-align: left;
+}
+
+#fileProtocolError a {
+  color: #007bff;
+}
+
+/* Mastodon Controls */
+.mastodon-controls {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #dee2e6;
+}
+
+.mastodon-controls button {
+  margin-right: 10px;
+}
+
+/* Post Status Message */
+.post-status-message {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.status-success {
+  color: #155724;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+}
+
+.status-error {
+  color: #721c24;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+}
+p.status-error {
+  padding: 0.3em;
+}
+
+/* Visibility Selector */
+.visibility-selector {
+  margin-bottom: 10px;
+}
+
+.visibility-selector label {
+  font-weight: 500;
 }

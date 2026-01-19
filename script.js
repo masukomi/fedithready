@@ -397,6 +397,241 @@ $(document).ready(function() {
 
     $('#inputText').trigger('input');
 
+    // ============================================
+    // Mastodon OAuth and Posting Integration
+    // ============================================
 
+    // Update the Mastodon button based on login state
+    function updateMastodonButton() {
+        const credentials = MastodonAPI.getCredentials();
+        if (credentials) {
+            $('#mastodonButton').text('Post thread to ' + credentials.instance);
+            $('#mastodonButton').removeClass('btn-success').addClass('btn-primary');
+            $('#logoutButton').show();
+        } else {
+            $('#mastodonButton').text('Log in to post');
+            $('#mastodonButton').removeClass('btn-primary').addClass('btn-success');
+            $('#logoutButton').hide();
+        }
+        // Enable button (it may have been disabled after posting)
+        $('#mastodonButton').prop('disabled', false);
+        hidePostStatus();
+    }
+
+    // Show post status message
+    function showPostStatus(message, isError) {
+        $('#postStatus')
+            .text(message)
+            .removeClass('status-success status-error')
+            .addClass(isError ? 'status-error' : 'status-success')
+            .show();
+    }
+
+    // Hide post status message
+    function hidePostStatus() {
+        $('#postStatus').hide();
+    }
+
+    // Get chunks formatted for posting (with pagination and username prefixes)
+    function getChunksForPosting() {
+        const text = $('#inputText').val();
+        const chunks = splitText(text) || [];
+        const totalPosts = chunks.length;
+        const paginationEnabled = isPaginationEnabled();
+        const usernamePrefix = chunks.usernamePrefix || "";
+
+        const formattedChunks = [];
+
+        for (let index = 0; index < chunks.length; index++) {
+            let chunk = chunks[index];
+
+            // Add ellipsis for mid-sentence breaks
+            if (chunk.reason == "space") {
+                chunk.text += "…";
+            }
+            if (chunks.length > 1 && index > 0 && chunks[index - 1]["reason"] == "space") {
+                chunk.text = "…" + chunk.text;
+            }
+
+            // Build the full text for this chunk
+            let fullText = "";
+
+            // Prepend username prefix to subsequent posts (not the first one)
+            if (index > 0 && usernamePrefix) {
+                fullText += usernamePrefix;
+            }
+
+            fullText += chunk.text;
+
+            // Add pagination
+            if (paginationEnabled) {
+                fullText += getPaginationText(index, totalPosts);
+            }
+
+            formattedChunks.push(fullText);
+        }
+
+        return formattedChunks;
+    }
+
+    // Handle OAuth callback on page load
+    async function handleOAuthCallback() {
+        try {
+            const credentials = await MastodonAPI.handleOAuthCallback();
+            if (credentials) {
+                updateMastodonButton();
+            }
+        } catch (error) {
+            console.error('OAuth callback error:', error);
+            showPostStatus('Login failed: ' + error.message, true);
+        }
+    }
+
+    // Post thread to Mastodon
+    async function postThreadToMastodon() {
+        const credentials = MastodonAPI.getCredentials();
+        if (!credentials) {
+            showLoginModal();
+            return;
+        }
+
+        const chunks = getChunksForPosting();
+        if (chunks.length === 0) {
+            showPostStatus('No text to post', true);
+            return;
+        }
+
+        const visibility = $('#visibilitySelect').val();
+
+        // Disable button and show posting status
+        $('#mastodonButton').prop('disabled', true);
+        showPostStatus('Posting...', false);
+
+        try {
+            const result = await MastodonAPI.postThread(
+                credentials.instance,
+                credentials.accessToken,
+                chunks,
+                visibility
+            );
+
+            if (result.success) {
+                showPostStatus('Thread posted successfully!', false);
+            } else {
+                showPostStatus('Failed to post item ' + (result.failedIndex + 1) + ': ' + result.error, true);
+            }
+        } catch (error) {
+            showPostStatus('Failed to post: ' + error.message, true);
+        }
+    }
+
+    // Show login modal
+    function showLoginModal() {
+        $('#modalError').hide();
+
+        // Check if running from file:// protocol
+        if (MastodonAPI.isFileProtocol()) {
+            $('#instanceStep').hide();
+            $('#fileProtocolError').show();
+        } else {
+            $('#fileProtocolError').hide();
+            $('#instanceStep').show();
+            $('#instanceInput').val('');
+            $('#authorizeBtn').prop('disabled', false).text('Authorize');
+        }
+
+        $('#loginModal').show();
+    }
+
+    // Hide login modal
+    function hideLoginModal() {
+        $('#loginModal').hide();
+    }
+
+    // Start authorization
+    async function startAuthorization() {
+        const instance = $('#instanceInput').val().trim();
+        if (!instance) {
+            $('#modalError').text('Please enter an instance domain').show();
+            return;
+        }
+
+        $('#authorizeBtn').prop('disabled', true).text('Connecting...');
+        $('#modalError').hide();
+
+        try {
+            await MastodonAPI.startOAuthFlow(instance);
+            // Page will redirect to Mastodon for authorization
+        } catch (error) {
+            $('#modalError').text('Error: ' + error.message).show();
+            $('#authorizeBtn').prop('disabled', false).text('Authorize');
+        }
+    }
+
+    // Mastodon button click handler
+    $('#mastodonButton').on('click', function() {
+        const credentials = MastodonAPI.getCredentials();
+        if (credentials) {
+            postThreadToMastodon();
+        } else {
+            showLoginModal();
+        }
+    });
+
+    // Authorize button click handler
+    $('#authorizeBtn').on('click', function() {
+        startAuthorization();
+    });
+
+    // Enter key in instance input
+    $('#instanceInput').on('keypress', function(e) {
+        if (e.which === 13) {
+            startAuthorization();
+        }
+    });
+
+    // Logout button click handler
+    $('#logoutButton').on('click', function() {
+        MastodonAPI.clearCredentials();
+        updateMastodonButton();
+    });
+
+    // Close modal handlers
+    $('.modal-close').on('click', function() {
+        hideLoginModal();
+    });
+
+    $('#loginModal').on('click', function(e) {
+        if (e.target === this) {
+            hideLoginModal();
+        }
+    });
+
+    // Re-enable post button when text changes (after posting)
+    $('#inputText').on('input', function() {
+        if ($('#mastodonButton').prop('disabled')) {
+            const credentials = MastodonAPI.getCredentials();
+            if (credentials) {
+                // Only re-enable if text is cleared or changed
+                $('#mastodonButton').prop('disabled', false);
+                hidePostStatus();
+            }
+        }
+    });
+
+    // Update clear button to also re-enable post button
+    $('#clearText').off('click').on('click', function() {
+        if (confirm("Are you sure you want to clear the text?")) {
+            clear();
+            $('#mastodonButton').prop('disabled', false);
+            hidePostStatus();
+        }
+    });
+
+    // Check for OAuth callback on page load
+    handleOAuthCallback();
+
+    // Update button state on page load
+    updateMastodonButton();
 
 });
