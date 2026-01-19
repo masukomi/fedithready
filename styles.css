@@ -216,11 +216,13 @@ label {
   border: 1px solid #c3e6cb;
 }
 
+#errorModalMessage,
 .status-error {
   color: #721c24;
   background-color: #f8d7da;
   border: 1px solid #f5c6cb;
 }
+#errorModalMessage,
 p.status-error {
   padding: 0.3em;
 }

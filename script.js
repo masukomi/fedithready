@@ -363,6 +363,14 @@ $(document).ready(function() {
         $('#inputText').trigger('input');
     });
 
+    $('#visibilitySelect').on('change', function() {
+        // Auto-check "Include usernames" when Direct is selected
+        if ($(this).val() === 'direct') {
+            $('#includeUsernamesCheckbox').prop('checked', true);
+            $('#inputText').trigger('input');
+        }
+    });
+
     $('#clearText').on('click', function() {
         confirm("Are you sure you want to clear the text?") && clear();
     });
@@ -483,7 +491,7 @@ $(document).ready(function() {
             }
         } catch (error) {
             console.error('OAuth callback error:', error);
-            showPostStatus('Login failed: ' + error.message, true);
+            showErrorModal('Login failed: ' + error.message);
         }
     }
 
@@ -497,11 +505,22 @@ $(document).ready(function() {
 
         const chunks = getChunksForPosting();
         if (chunks.length === 0) {
-            showPostStatus('No text to post', true);
+            showErrorModal('No text to post');
             return;
         }
 
         const visibility = $('#visibilitySelect').val();
+
+        // Validate Direct visibility requirements
+        if (visibility === 'direct') {
+            const firstChunkUsernames = extractUsernames(chunks[0]);
+            const includeUsernames = includeUsernamesInReplies();
+
+            if (firstChunkUsernames.length === 0 || !includeUsernames) {
+                showErrorModal('Posts with a Direct visibility must include a username in each post. Please add 1 or more usernames to the first section and check the "Include usernames in replies" checkbox.');
+                return;
+            }
+        }
 
         // Disable button and show posting status
         $('#mastodonButton').prop('disabled', true);
@@ -518,11 +537,24 @@ $(document).ready(function() {
             if (result.success) {
                 showPostStatus('Thread posted successfully!', false);
             } else {
-                showPostStatus('Failed to post item ' + (result.failedIndex + 1) + ': ' + result.error, true);
+                hidePostStatus();
+                showErrorModal('Failed to post item ' + (result.failedIndex + 1) + ': ' + result.error);
             }
         } catch (error) {
-            showPostStatus('Failed to post: ' + error.message, true);
+            hidePostStatus();
+            showErrorModal('Failed to post: ' + error.message);
         }
+    }
+
+    // Show error modal
+    function showErrorModal(message) {
+        $('#errorModalMessage').text(message);
+        $('#errorModal').show();
+    }
+
+    // Hide error modal
+    function hideErrorModal() {
+        $('#errorModal').hide();
     }
 
     // Show login modal
@@ -599,12 +631,23 @@ $(document).ready(function() {
     // Close modal handlers
     $('.modal-close').on('click', function() {
         hideLoginModal();
+        hideErrorModal();
     });
 
     $('#loginModal').on('click', function(e) {
         if (e.target === this) {
             hideLoginModal();
         }
+    });
+
+    $('#errorModal').on('click', function(e) {
+        if (e.target === this) {
+            hideErrorModal();
+        }
+    });
+
+    $('#errorModalCloseBtn').on('click', function() {
+        hideErrorModal();
     });
 
     // Re-enable post button when text changes (after posting)
