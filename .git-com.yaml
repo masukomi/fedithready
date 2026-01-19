@@ -1,0 +1,43 @@
+change-type:
+    type: select
+    destination: title
+    after-string: '] '
+    before-string: '['
+    instructions: What kind of change?
+    modifiable: true
+    options:
+        - fix
+        - add
+        - refactor
+        - clean-up
+commit-title:
+    type: text
+    destination: title
+    placeholder: Commit Title
+commit-description:
+    allow-empty: true
+    destination: body
+    instructions: Please describe your changes.
+    type: multiline-text
+    after-string: "\n"
+code-sections:
+    type: multi-select
+    record-as: joined-string
+    allow-empty: true
+    before-string: "\nCode Sections: "
+    after-string: "\n"
+    destination: body
+    instructions: Which section(s) of the codebase?
+    modifiable: true
+    options:
+        - js
+        - html
+        - docs
+        - meta
+ticket-number:
+    type: text
+    destination: body
+    data-type: integer
+    allow-empty: true
+    before-string: "\n\nTicket: "
+    instructions: "Associated Ticket Number (if any)"
