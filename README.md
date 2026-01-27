@@ -39,6 +39,13 @@ That's it.
 ### Local Authentication Limitations
 Posting to a Mastodon server is disabled when loaded via a `file://` URL because of [CORS](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing) security measures enforced by Mastodon. FediThready _will_ be able to authenticate and post if you load it from `localhost` or `127.0.0.1`
 
+You can do this by running a local web server and accessing it through that. For example, execute the following on the command line from within the FediThready directory.
+
+``` bash
+python3 -m http.server 8000
+```
+Then access your locally hosted FediThready at <http://localhost:8000>
+
 
 ## Features
 
