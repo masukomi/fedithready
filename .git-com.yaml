@@ -42,3 +42,9 @@ ticket-number:
     allow-empty: true
     before-string: "\n\nTicket: "
     instructions: "Associated Ticket Number (if any)"
+meta_element_changelog:
+    display_aliases:
+        fix: "fixed"
+        add: "added"
+        refactor: "refactored"
+        clean-up: "cleaned"
