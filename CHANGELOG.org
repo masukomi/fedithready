@@ -1,0 +1,44 @@
+* v1.4.1
+** [cleaned]
+- styling around content warning previews
+
+* v1.4.0
+** [fixed]
+- corrected character count of chunks
+
+** [added]
+- posting to mastodon
+- sanity checking for direct messages & better errors
+- added og_image
+- instructions for running local server
+- support for content warnings
+
+* v1.3.0
+** [fixed]
+- corrected character count of chunks
+
+** [added]
+- posting to mastodon
+
+* v1.2.0
+** [fixed]
+- Now accounts for "pagination" text ( 🧵 1/23 ) when calculating max post
+  length
+
+** [added]
+- Stores text in local storage in case you accidentally close the
+  window
+- Uses ellipseses when breaking in the middle of sentences.
+  A single character ellipsis ( "…" ) will be inserted at the end of the
+  leading post, and at the start of the following post.
+- Intelligently spilts on sentence ends.
+
+* v1.0.0
+Initial FediThready release
+
+A fork of Mastothread where ChatGPT's stupid
+has been fixed, some quality of life improvements
+have been added, and it's been renamed.
+
+This fork is not about what you can do with
+AI generated text. It's about making a useful tool.
