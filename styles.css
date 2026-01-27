@@ -70,7 +70,8 @@ ol {  /* Assuming your headlines are h2 elements */
 
 .content-warning-display {
   background-color: #f8d7da;
-
+  padding: 0.25em;
+  border-radius: 0.2em;
 }
 .btn-secondary {
   margin-top: -5px;

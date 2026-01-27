@@ -373,7 +373,7 @@ $(document).ready(function() {
 
             // Build content warning HTML if present
             const cwHtml = contentWarning ?
-                `<div class="content-warning-display" style="background-color: #f8d7da; padding: 8px; margin-bottom: 8px; border-radius: 4px;">⚠️ ${escapeHTML(contentWarning)}</div>` : '';
+                `<div class="content-warning-display">${escapeHTML(contentWarning)}</div>` : '';
 
             $('#previewArea').append(`
                 <div class="post-container">
