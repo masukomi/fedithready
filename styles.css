@@ -1,11 +1,20 @@
+#contentWarning::placeholder {
+  opacity: 0.5;
+}
+
 .post-container {
   position: relative;
   margin-bottom: 50px;
 }
 
-.alert {
-  padding-top: 40px; /* Add space at the top to ensure text does not overlap with char-count and btn-copy */
+.chunk-text {
+  padding: 2.5em 0.75em 0.75em 0.75em;
+  /* Add space at the top to ensure text does not overlap with char-count and btn-copy */
+  color: #383d41;
+  background-color: #ddd;
+  border-color: #d6d8db;
 }
+
 
 .char-count {
   position: absolute;
@@ -59,6 +68,10 @@ ol {  /* Assuming your headlines are h2 elements */
   margin-right: 10px !important;
 }
 
+.content-warning-display {
+  background-color: #f8d7da;
+
+}
 .btn-secondary {
   margin-top: -5px;
   left: 0;
@@ -105,7 +118,7 @@ ol {  /* Assuming your headlines are h2 elements */
   font-size: 0.9em;
 }
 
-.copied-post .alert {
+.copied-post .chunk-text {
   background-color: #e6ffe6; /* This is a very light green tint */
 }
 

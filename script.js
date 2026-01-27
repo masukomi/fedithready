@@ -30,6 +30,18 @@ $(document).ready(function() {
         return $('#includeUsernamesCheckbox').prop('checked');
     }
 
+    function getContentWarning() {
+        return $('#contentWarning').val().trim();
+    }
+
+    // Get the length contribution of content warning to character count
+    // Returns 0 if no content warning, otherwise length + 1 (for separation)
+    function getContentWarningLength() {
+        const cw = getContentWarning();
+        if (cw.length === 0) return 0;
+        return getTrueTextLength(cw) + 1;
+    }
+
     // Extract all @username@domain mentions from text
     function extractUsernames(text) {
         const usernameRegex = /@\S+@\S+/g;
@@ -124,6 +136,8 @@ $(document).ready(function() {
         if (usernamePrefixLength && usernamePrefixLength > 0) {
             charLimit -= usernamePrefixLength;
         }
+        // Subtract content warning length (+ 1 for separation) if present
+        charLimit -= getContentWarningLength();
         if (getTrueTextLength(text) <= charLimit) {
             // the current section of this chunk of the manual chunk
             // is already shorter than the max
@@ -253,6 +267,20 @@ $(document).ready(function() {
         }
     }
 
+    function updateContentWarningLocalStorage(cw) {
+        if (typeof(Storage) !== "undefined") {
+            localStorage.setItem('contentWarning', cw);
+        }
+    }
+
+    function retrieveContentWarningLocalStorage() {
+        if (typeof(Storage) !== "undefined") {
+            return localStorage.getItem('contentWarning');
+        } else {
+            return null;
+        }
+    }
+
     function retrieveLocalStorage() {
         if (typeof(Storage) !== "undefined") {
             return localStorage.getItem('inputText');
@@ -268,30 +296,39 @@ $(document).ready(function() {
             const text = retrieveLocalStorage();
             if (text !== null) {
                 $('#inputText').val(text);
-                $('#inputText').trigger('input');
             }
         }
+        // Also restore content warning
+        if ($('#contentWarning').val() === "") {
+            const cw = retrieveContentWarningLocalStorage();
+            if (cw !== null) {
+                $('#contentWarning').val(cw);
+            }
+        }
+        // Trigger input to update preview
+        $('#inputText').trigger('input');
     }
 
     function clear(){
         updateLocalStorage(null);
+        updateContentWarningLocalStorage(null);
         $('#inputText').val('');
+        $('#contentWarning').val('');
         $('#inputText').trigger('input');
     }
 
     /// END OF STANDARD FUNCTIONS
 
-    $('#inputText').on('input', debounce(function() {
-        const text = $(this).val();
+    $('#inputText, #contentWarning').on('input', debounce(function() {
+        const text = $('#inputText').val();
         const chunks = splitText(text) || [];
         const totalPosts = chunks.length;
         const paginationEnabled = isPaginationEnabled();
         const usernamePrefix = chunks.usernamePrefix || "";
+        const contentWarning = getContentWarning();
 
         updateLocalStorage(text);
-
-
-
+        updateContentWarningLocalStorage(contentWarning);
 
         $('#previewArea').empty();
         // chunks.forEach((chunk, index) => {
@@ -330,17 +367,24 @@ $(document).ready(function() {
             let copyButtonText = getCopyText(index, totalPosts);
 
             // Calculate character count from the full post content
-            const charCount = getTrueTextLength(copyText + paginationText);
+            // Include content warning length + 1 if present
+            const cwLength = getContentWarningLength();
+            const charCount = getTrueTextLength(copyText + paginationText) + cwLength;
+
+            // Build content warning HTML if present
+            const cwHtml = contentWarning ?
+                `<div class="content-warning-display" style="background-color: #f8d7da; padding: 8px; margin-bottom: 8px; border-radius: 4px;">⚠️ ${escapeHTML(contentWarning)}</div>` : '';
 
             $('#previewArea').append(`
                 <div class="post-container">
-                    <div class="alert alert-secondary">
+                    <div class="chunk-text">
                         <button
                             class="btn btn-secondary btn-copy"
                             data-text="${escapeHTML(copyText + paginationText)}"
                             aria-pressed="false"
                         >${copyButtonText}</button>
                         <span class="char-count">${charCount} characters</span>
+                        ${cwHtml}
                         ${formattedChunk}
                         ${paginationText ? `<br><span class="post-number">${paginationText}</span>` : ''}
                     </div>
@@ -510,6 +554,7 @@ $(document).ready(function() {
         }
 
         const visibility = $('#visibilitySelect').val();
+        const contentWarning = getContentWarning();
 
         // Validate Direct visibility requirements
         if (visibility === 'direct') {
@@ -531,7 +576,8 @@ $(document).ready(function() {
                 credentials.instance,
                 credentials.accessToken,
                 chunks,
-                visibility
+                visibility,
+                contentWarning
             );
 
             if (result.success) {

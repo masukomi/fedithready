@@ -267,7 +267,7 @@ const MastodonAPI = (function() {
     }
 
     // Post a thread (array of chunks)
-    async function postThread(instance, accessToken, chunks, visibility) {
+    async function postThread(instance, accessToken, chunks, visibility, spoilerText) {
         let previousId = null;
         const postedStatuses = [];
 
@@ -277,6 +277,11 @@ const MastodonAPI = (function() {
                     status: chunks[i],
                     visibility: visibility
                 };
+
+                // Add spoiler_text (content warning) if provided
+                if (spoilerText && spoilerText.length > 0) {
+                    params.spoiler_text = spoilerText;
+                }
 
                 if (previousId) {
                     params.in_reply_to_id = previousId;
