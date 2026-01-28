@@ -844,10 +844,15 @@ $(document).ready(function() {
             const post = await MastodonAPI.resolvePostUrl(
                 credentials.instance, credentials.accessToken, url
             );
+            // Build full acct with instance domain (Mastodon omits domain for local users)
+            const fullAcct = post.account.acct.includes('@')
+                ? post.account.acct
+                : post.account.acct + '@' + credentials.instance;
+
             cachedReplyTo = {
                 url: url,
                 resolvedId: post.id,
-                authorAcct: '@' + post.account.acct,
+                authorAcct: '@' + fullAcct,
                 authorDisplayName: post.account.display_name
             };
 
@@ -861,8 +866,8 @@ $(document).ready(function() {
             // 1. Extract mentions from the parent post content (strip HTML first)
             const plainTextContent = post.content.replace(/<[^>]*>/g, ' ');
             const contentMentions = extractUsernames(plainTextContent);
-            // 2. Add the author's username
-            const authorMention = '@' + post.account.acct;
+            // 2. Add the author's username (with full domain)
+            const authorMention = '@' + fullAcct;
             const allMentions = [...contentMentions, authorMention];
             // 3. Deduplicate
             const uniqueMentions = [...new Set(allMentions)];
