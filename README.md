@@ -21,9 +21,22 @@ You can manually insert a separation between posts by inserting a line with thre
 - Finish authenticating
 - Click Post Thread to `<your domain>`
 
-You'll remain logged in for future posting, until you click "Disconnect" or your authentication token expires. 
+You'll remain logged in for future posting, until you click "Disconnect" or your authentication token expires.
 
 Note: Your login credentials (an oAuth token) are stored locally on your computer. There's no need to click "Disconnect" unless you are on a shared computer or you want to switch which server it's posting to.
+
+### Replying to an Existing Post
+You can post your thread as a reply to an existing post on any ActivityPub-compatible server (Mastodon, Sharkey, Misskey, Pleroma, etc.):
+
+1. Log in to your Mastodon server (see Auto-Posting above)
+2. Click "Reply to post..." to expand the reply section
+3. Paste the URL of the post you want to reply to
+4. FediThready will fetch the post and show a preview
+5. The author's username (and any users mentioned in the original post) will be automatically added to your text
+6. The "Include usernames in replies" checkbox will be enabled so mentions appear in all chunks
+7. Post your thread as usual
+
+This works with post URLs from any ActivityPub server, not just Mastodon.
 
 ### Manual Posting
 When you're ready to post, scroll to the top of the preview, click the copy button by the first post, post it, click the copy button by the second post, stick it in a reply to the last post, repeat. As you click copy the post's color will change to let you know you've already grabbed that one.
@@ -55,6 +68,7 @@ Then access your locally hosted FediThready at <http://localhost:8000>
 - **Adjustable Character Limit**: Customize the chunk size as per your preference.
 - **Real-time Preview**: Visualize how your text will appear as separate Mastodon posts.
 - **Copy to Clipboard**: Quick copy buttons for every chunk, which turn green upon being clicked to indicate a successful copy action.
+- **Reply to Existing Posts**: Post your thread as a reply to any post on the Fediverse by pasting its URL. Works with Mastodon, Sharkey, Misskey, Pleroma, and other ActivityPub-compatible servers.
 
 ## Future Plans
 
