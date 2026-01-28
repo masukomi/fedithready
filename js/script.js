@@ -897,4 +897,89 @@ $(document).ready(function() {
     // Update button state on page load
     updateMastodonButton();
 
+    // Handle replyToUrl query string parameter
+    function handleReplyToUrlQueryParam() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const queryReplyToUrl = urlParams.get('replyToUrl');
+
+        if (!queryReplyToUrl) return;
+
+        const currentReplyToUrl = $('#replyToUrl').val().trim();
+
+        // If there's already a different URL in the field, show conflict dialog
+        if (currentReplyToUrl && currentReplyToUrl !== queryReplyToUrl) {
+            pendingQueryReplyToUrl = queryReplyToUrl;
+            $('#replyUrlConflictModal').show();
+        } else {
+            // No conflict - just set the URL and trigger input
+            applyReplyToUrl(queryReplyToUrl);
+        }
+
+        // Clear the query string from URL without reloading
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // Store pending URL when conflict dialog is shown
+    let pendingQueryReplyToUrl = null;
+
+    // Apply reply-to URL (expand accordion if needed, set value, trigger input)
+    function applyReplyToUrl(url) {
+        // Expand the accordion if it's collapsed
+        const $collapse = $('#replyToCollapse');
+        if (!$collapse.hasClass('show')) {
+            $collapse.collapse('show');
+        }
+
+        // Set the URL and trigger input to fetch preview
+        $('#replyToUrl').val(url);
+        $('#replyToUrl').trigger('input');
+    }
+
+    // Reply URL conflict modal handlers
+    $('#replyUrlKeepTextBtn').on('click', function() {
+        $('#replyUrlConflictModal').hide();
+        if (pendingQueryReplyToUrl) {
+            applyReplyToUrl(pendingQueryReplyToUrl);
+            pendingQueryReplyToUrl = null;
+        }
+    });
+
+    $('#replyUrlClearAllBtn').on('click', function() {
+        $('#replyUrlConflictModal').hide();
+        if (pendingQueryReplyToUrl) {
+            // Clear all text
+            $('#inputText').val('');
+            $('#contentWarning').val('');
+            updateLocalStorage(null);
+            updateContentWarningLocalStorage(null);
+            cachedReplyTo = null;
+            $('#replyToPreview').hide();
+
+            // Apply the new URL
+            applyReplyToUrl(pendingQueryReplyToUrl);
+            pendingQueryReplyToUrl = null;
+        }
+    });
+
+    $('#replyUrlCancelBtn').on('click', function() {
+        $('#replyUrlConflictModal').hide();
+        pendingQueryReplyToUrl = null;
+    });
+
+    // Close modal on X click or outside click
+    $('#replyUrlConflictModal .modal-close').on('click', function() {
+        $('#replyUrlConflictModal').hide();
+        pendingQueryReplyToUrl = null;
+    });
+
+    $('#replyUrlConflictModal').on('click', function(e) {
+        if (e.target === this) {
+            $('#replyUrlConflictModal').hide();
+            pendingQueryReplyToUrl = null;
+        }
+    });
+
+    // Check for replyToUrl query param after everything is set up
+    handleReplyToUrlQueryParam();
+
 });
