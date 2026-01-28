@@ -1,3 +1,11 @@
+* v1.5.0
+** [added]
+- added CHANGELOG.org
+- can now reply to post
+  - replyToUrl can now be pre-populated via query string
+- added SVG icon
+- new violentmonkey script to add reply with fedithready icon to posts
+
 * v1.4.1
 ** [cleaned]
 - styling around content warning previews
