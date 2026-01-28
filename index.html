@@ -99,23 +99,34 @@
                 </select>
             </div>
 
-            <div class="reply-to-section mb-2" id="replyToSection" style="display: none;">
-                <label for="replyToUrl">Reply to post:</label>
-                <div class="input-group">
-                    <input type="text" id="replyToUrl" class="form-control"
-                           placeholder="https://mastodon.social/@user/123456789">
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-secondary" type="button"
-                                id="clearReplyTo" title="Clear">&times;</button>
+            <div class="accordion mb-2" id="replyToSection" style="display: none;">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="replyToHeader">
+                        <button class="accordion-button collapsed" type="button" data-toggle="collapse"
+                                data-target="#replyToCollapse" aria-expanded="false" aria-controls="replyToCollapse">
+                            Reply to post…
+                        </button>
+                    </h2>
+                    <div id="replyToCollapse" class="accordion-collapse collapse" aria-labelledby="replyToHeader" data-parent="#replyToSection">
+                        <div class="accordion-body">
+                            <div class="input-group">
+                                <input type="text" id="replyToUrl" class="form-control"
+                                       placeholder="https://mastodon.social/@user/123456789">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="button"
+                                            id="clearReplyTo" title="Clear">&times;</button>
+                                </div>
+                            </div>
+                            <small id="replyToStatus" class="form-text"></small>
+                            <div id="replyToPreview" class="reply-to-preview" style="display: none;">
+                                <div class="preview-header">
+                                    <strong>Replying to:</strong>
+                                    <span id="replyToAuthor"></span>
+                                </div>
+                                <div id="replyToContent" class="preview-content"></div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <small id="replyToStatus" class="form-text"></small>
-                <div id="replyToPreview" class="reply-to-preview" style="display: none;">
-                    <div class="preview-header">
-                        <strong>Replying to:</strong>
-                        <span id="replyToAuthor"></span>
-                    </div>
-                    <div id="replyToContent" class="preview-content"></div>
                 </div>
             </div>
 
