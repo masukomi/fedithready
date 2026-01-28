@@ -266,9 +266,32 @@ const MastodonAPI = (function() {
         return await response.json();
     }
 
+    // Resolve a post URL to get the local representation
+    async function resolvePostUrl(instance, accessToken, url) {
+        const instanceURL = getInstanceURL(instance);
+        const params = new URLSearchParams({
+            q: url,
+            resolve: 'true',
+            type: 'statuses',
+            limit: '1'
+        });
+
+        const response = await fetch(`${instanceURL}/api/v2/search?${params}`, {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+
+        if (!response.ok) throw new Error(`Failed to resolve post: ${await response.text()}`);
+
+        const data = await response.json();
+        if (!data.statuses || data.statuses.length === 0) {
+            throw new Error('Post not found or could not be fetched from the remote server');
+        }
+        return data.statuses[0];
+    }
+
     // Post a thread (array of chunks)
-    async function postThread(instance, accessToken, chunks, visibility, spoilerText) {
-        let previousId = null;
+    async function postThread(instance, accessToken, chunks, visibility, spoilerText, inReplyToId = null) {
+        let previousId = inReplyToId;
         const postedStatuses = [];
 
         for (let i = 0; i < chunks.length; i++) {
@@ -332,6 +355,7 @@ const MastodonAPI = (function() {
         postStatus,
         postThread,
         getCustomEmojis,
-        normalizeInstance
+        normalizeInstance,
+        resolvePostUrl
     };
 })();

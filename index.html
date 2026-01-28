@@ -10,10 +10,10 @@
     <title>FediThready</title>
 
     <!-- Bootstrap CSS -->
-    <link href="bootstrap-4.5.2.min.css" rel="stylesheet">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
@@ -98,6 +98,27 @@
                     <option value="direct">Direct</option>
                 </select>
             </div>
+
+            <div class="reply-to-section mb-2" id="replyToSection" style="display: none;">
+                <label for="replyToUrl">Reply to post:</label>
+                <div class="input-group">
+                    <input type="text" id="replyToUrl" class="form-control"
+                           placeholder="https://mastodon.social/@user/123456789">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" type="button"
+                                id="clearReplyTo" title="Clear">&times;</button>
+                    </div>
+                </div>
+                <small id="replyToStatus" class="form-text"></small>
+                <div id="replyToPreview" class="reply-to-preview" style="display: none;">
+                    <div class="preview-header">
+                        <strong>Replying to:</strong>
+                        <span id="replyToAuthor"></span>
+                    </div>
+                    <div id="replyToContent" class="preview-content"></div>
+                </div>
+            </div>
+
             <div id="previewArea"></div>
         </div>
     </div>
@@ -148,14 +169,14 @@
 </footer>
 
 <!-- jQuery and Bootstrap JS -->
-<script src="jquery-3.5.1.min.js"></script>
-<script src="bootstrap.bundle-4.5.2.min.js"></script>
+<script src="js/jquery-3.5.1.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
 
 <!-- Mastodon API -->
-<script src="mastodon-api.js"></script>
+<script src="js/mastodon-api.js"></script>
 
 <!-- Custom JS -->
-<script src="script.js"></script>
+<script src="js/script.js"></script>
 
 </body>
 </html>

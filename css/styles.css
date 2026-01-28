@@ -249,3 +249,60 @@ p.status-error {
 .visibility-selector label {
   font-weight: 500;
 }
+
+/* Reply-to Section */
+.reply-to-section {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.reply-to-section label {
+  font-weight: 500;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.reply-to-section .input-group {
+  margin-bottom: 5px;
+}
+
+.reply-to-section #clearReplyTo {
+  border-color: #ced4da;
+}
+
+#replyToStatus {
+  font-size: 0.85rem;
+}
+
+#replyToStatus.status-error {
+  color: #dc3545;
+  background-color: transparent;
+  border: none;
+}
+
+#replyToStatus.status-info {
+  color: #6c757d;
+}
+
+.reply-to-preview {
+  margin-top: 8px;
+  padding: 10px;
+  background: #e9ecef;
+  border-radius: 4px;
+  border-left: 3px solid #6c757d;
+  font-size: 0.9em;
+}
+
+.reply-to-preview .preview-header {
+  margin-bottom: 5px;
+  color: #495057;
+}
+
+.reply-to-preview .preview-content {
+  color: #212529;
+  max-height: 150px;
+  overflow-y: auto;
+}

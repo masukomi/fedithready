@@ -51,6 +51,26 @@ $(document).ready(function() {
         return [...new Set(matches)];
     }
 
+    // Validate a post URL (any valid HTTP/HTTPS URL)
+    function parsePostUrl(url) {
+        if (!url || url.trim() === '') return { valid: true, isEmpty: true };
+        url = url.trim();
+
+        // Just validate it's a valid HTTP/HTTPS URL - let the API handle the rest
+        try {
+            const parsed = new URL(url);
+            if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+                return { valid: false, error: 'URL must use http or https' };
+            }
+            return { valid: true, isEmpty: false, url: url };
+        } catch (e) {
+            return { valid: false, error: 'Invalid URL format' };
+        }
+    }
+
+    // Cached reply-to data to avoid re-resolving on post
+    let cachedReplyTo = null;  // { url, resolvedId, authorAcct, authorDisplayName }
+
     // Get the username prefix string to prepend to subsequent posts
     function getUsernamePrefix(usernames) {
         if (!usernames || usernames.length === 0) return "";
@@ -281,6 +301,20 @@ $(document).ready(function() {
         }
     }
 
+    function updateReplyToLocalStorage(url) {
+        if (typeof(Storage) !== "undefined") {
+            localStorage.setItem('replyToUrl', url || '');
+        }
+    }
+
+    function retrieveReplyToLocalStorage() {
+        if (typeof(Storage) !== "undefined") {
+            return localStorage.getItem('replyToUrl') || '';
+        } else {
+            return '';
+        }
+    }
+
     function retrieveLocalStorage() {
         if (typeof(Storage) !== "undefined") {
             return localStorage.getItem('inputText');
@@ -305,6 +339,14 @@ $(document).ready(function() {
                 $('#contentWarning').val(cw);
             }
         }
+        // Also restore reply-to URL
+        if ($('#replyToUrl').val() === "") {
+            const replyToUrl = retrieveReplyToLocalStorage();
+            if (replyToUrl) {
+                $('#replyToUrl').val(replyToUrl);
+                // Trigger input to fetch preview (will be handled after login check)
+            }
+        }
         // Trigger input to update preview
         $('#inputText').trigger('input');
     }
@@ -312,9 +354,24 @@ $(document).ready(function() {
     function clear(){
         updateLocalStorage(null);
         updateContentWarningLocalStorage(null);
+        updateReplyToLocalStorage(null);
         $('#inputText').val('');
         $('#contentWarning').val('');
+        $('#replyToUrl').val('');
+        cachedReplyTo = null;
+        $('#replyToPreview').hide();
+        updateReplyToStatus('');
         $('#inputText').trigger('input');
+    }
+
+    // Update reply-to status message
+    function updateReplyToStatus(message, isError) {
+        const $status = $('#replyToStatus');
+        $status.text(message);
+        $status.removeClass('status-error status-info');
+        if (message) {
+            $status.addClass(isError ? 'status-error' : 'status-info');
+        }
     }
 
     /// END OF STANDARD FUNCTIONS
@@ -460,10 +517,17 @@ $(document).ready(function() {
             $('#mastodonButton').text('Post thread to ' + credentials.instance);
             $('#mastodonButton').removeClass('btn-success').addClass('btn-primary');
             $('#logoutButton').show();
+            $('#replyToSection').show();
+            // Trigger reply-to URL check if there's a saved URL
+            const savedUrl = $('#replyToUrl').val().trim();
+            if (savedUrl) {
+                $('#replyToUrl').trigger('input');
+            }
         } else {
             $('#mastodonButton').text('Log in to post');
             $('#mastodonButton').removeClass('btn-primary').addClass('btn-success');
             $('#logoutButton').hide();
+            $('#replyToSection').hide();
         }
         // Enable button (it may have been disabled after posting)
         $('#mastodonButton').prop('disabled', false);
@@ -567,6 +631,38 @@ $(document).ready(function() {
             }
         }
 
+        // Handle reply-to URL
+        const replyToUrl = $('#replyToUrl').val().trim();
+        let replyToId = null;
+
+        if (replyToUrl) {
+            const parsed = parsePostUrl(replyToUrl);
+            if (!parsed.valid) {
+                showErrorModal(parsed.error);
+                return;
+            }
+            if (!parsed.isEmpty) {
+                // Use cached data if URL matches, otherwise resolve
+                if (cachedReplyTo && cachedReplyTo.url === replyToUrl) {
+                    replyToId = cachedReplyTo.resolvedId;
+                } else {
+                    $('#mastodonButton').prop('disabled', true);
+                    showPostStatus('Resolving reply-to post...', false);
+                    try {
+                        const resolved = await MastodonAPI.resolvePostUrl(
+                            credentials.instance, credentials.accessToken, replyToUrl
+                        );
+                        replyToId = resolved.id;
+                    } catch (error) {
+                        hidePostStatus();
+                        showErrorModal('Failed to resolve reply-to post: ' + error.message);
+                        $('#mastodonButton').prop('disabled', false);
+                        return;
+                    }
+                }
+            }
+        }
+
         // Disable button and show posting status
         $('#mastodonButton').prop('disabled', true);
         showPostStatus('Posting...', false);
@@ -577,7 +673,8 @@ $(document).ready(function() {
                 credentials.accessToken,
                 chunks,
                 visibility,
-                contentWarning
+                contentWarning,
+                replyToId
             );
 
             if (result.success) {
@@ -715,6 +812,83 @@ $(document).ready(function() {
             $('#mastodonButton').prop('disabled', false);
             hidePostStatus();
         }
+    });
+
+    // Reply-to URL input handler (debounced)
+    $('#replyToUrl').on('input', debounce(async function() {
+        const url = $(this).val().trim();
+        cachedReplyTo = null;
+        updateReplyToLocalStorage(url);
+
+        if (!url) {
+            $('#replyToPreview').hide();
+            updateReplyToStatus('');
+            return;
+        }
+
+        const parsed = parsePostUrl(url);
+        if (!parsed.valid) {
+            updateReplyToStatus(parsed.error, true);
+            $('#replyToPreview').hide();
+            return;
+        }
+
+        const credentials = MastodonAPI.getCredentials();
+        if (!credentials) {
+            updateReplyToStatus('Log in to preview parent post', false);
+            return;
+        }
+
+        updateReplyToStatus('Fetching post...', false);
+        try {
+            const post = await MastodonAPI.resolvePostUrl(
+                credentials.instance, credentials.accessToken, url
+            );
+            cachedReplyTo = {
+                url: url,
+                resolvedId: post.id,
+                authorAcct: '@' + post.account.acct,
+                authorDisplayName: post.account.display_name
+            };
+
+            // Show preview
+            $('#replyToAuthor').text(post.account.display_name + ' (' + cachedReplyTo.authorAcct + ')');
+            $('#replyToContent').html(post.content);  // Mastodon returns HTML
+            $('#replyToPreview').show();
+            updateReplyToStatus('', false);
+
+            // Build list of usernames to prepend to input text
+            // 1. Extract mentions from the parent post content (strip HTML first)
+            const plainTextContent = post.content.replace(/<[^>]*>/g, ' ');
+            const contentMentions = extractUsernames(plainTextContent);
+            // 2. Add the author's username
+            const authorMention = '@' + post.account.acct;
+            const allMentions = [...contentMentions, authorMention];
+            // 3. Deduplicate
+            const uniqueMentions = [...new Set(allMentions)];
+            // 4. Prepend to input text (only those not already present)
+            const currentText = $('#inputText').val();
+            const missingMentions = uniqueMentions.filter(m => !currentText.includes(m));
+            if (missingMentions.length > 0) {
+                const prefix = missingMentions.join(' ') + ' ';
+                $('#inputText').val(prefix + currentText);
+                // 5. Check "Include usernames in replies" so mentions appear in all chunks
+                $('#includeUsernamesCheckbox').prop('checked', true);
+                $('#inputText').trigger('input');
+            }
+        } catch (error) {
+            updateReplyToStatus('Could not fetch post: ' + error.message, true);
+            $('#replyToPreview').hide();
+        }
+    }, 800));
+
+    // Clear reply-to button handler
+    $('#clearReplyTo').on('click', function() {
+        $('#replyToUrl').val('');
+        cachedReplyTo = null;
+        updateReplyToLocalStorage('');
+        $('#replyToPreview').hide();
+        updateReplyToStatus('');
     });
 
     // Check for OAuth callback on page load
