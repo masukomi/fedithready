@@ -1,3 +1,8 @@
+* v1.6.1
+
+** [fixed]
+- preview of url now toggles replying / quoting text at start
+
 * v1.6.0
 
 ** [added]

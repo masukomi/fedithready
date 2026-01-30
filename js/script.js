@@ -95,6 +95,9 @@ $(document).ready(function() {
         const $warning = $('#quotePostWarning');
         const replyToUrl = $('#replyToUrl').val().trim();
 
+        // Update the preview label based on checkbox state
+        $('#replyToLabel').text(isChecked ? 'Quoting:' : 'Replying to:');
+
         if (!isChecked || !cachedReplyTo) {
             $warning.hide();
             // Remove QT prefix if it was added
