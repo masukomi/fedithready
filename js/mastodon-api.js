@@ -290,7 +290,8 @@ const MastodonAPI = (function() {
     }
 
     // Post a thread (array of chunks)
-    async function postThread(instance, accessToken, chunks, visibility, spoilerText, inReplyToId = null) {
+    // quotedStatusId is used for quote posts (only on the first post of the thread)
+    async function postThread(instance, accessToken, chunks, visibility, spoilerText, inReplyToId = null, quotedStatusId = null) {
         let previousId = inReplyToId;
         const postedStatuses = [];
 
@@ -306,7 +307,11 @@ const MastodonAPI = (function() {
                     params.spoiler_text = spoilerText;
                 }
 
-                if (previousId) {
+                // For the first post, use quoted_status_id if this is a quote post
+                // For subsequent posts, chain them as replies to the previous post
+                if (i === 0 && quotedStatusId) {
+                    params.quoted_status_id = quotedStatusId;
+                } else if (previousId) {
                     params.in_reply_to_id = previousId;
                 }
 

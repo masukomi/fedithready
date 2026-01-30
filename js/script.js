@@ -69,7 +69,83 @@ $(document).ready(function() {
     }
 
     // Cached reply-to data to avoid re-resolving on post
-    let cachedReplyTo = null;  // { url, resolvedId, authorAcct, authorDisplayName }
+    let cachedReplyTo = null;  // { url, resolvedId, authorAcct, authorDisplayName, quoteApproval }
+
+    // Check if quoting is allowed based on quote_approval.current_user
+    function isQuotingAllowed(quoteApproval) {
+        if (!quoteApproval || !quoteApproval.current_user) return false;
+        const status = quoteApproval.current_user;
+        return status === 'automatic' || status === 'manual';
+    }
+
+    // Update quote checkbox state based on whether there's a valid URL
+    function updateQuoteCheckboxState(hasValidUrl) {
+        const $checkbox = $('#quotePostCheckbox');
+        if (hasValidUrl) {
+            $checkbox.prop('disabled', false);
+        } else {
+            $checkbox.prop('disabled', true).prop('checked', false);
+            $('#quotePostWarning').hide();
+        }
+    }
+
+    // Handle quote checkbox state change
+    function handleQuoteCheckboxChange() {
+        const isChecked = $('#quotePostCheckbox').prop('checked');
+        const $warning = $('#quotePostWarning');
+        const replyToUrl = $('#replyToUrl').val().trim();
+
+        if (!isChecked || !cachedReplyTo) {
+            $warning.hide();
+            // Remove QT prefix if it was added
+            removeQtPrefix();
+            return;
+        }
+
+        // Check if quoting is allowed
+        if (!isQuotingAllowed(cachedReplyTo.quoteApproval)) {
+            // Quoting not allowed - show warning and add QT prefix
+            $warning.html('⚠️ Quoting of that post is not allowed. We\'ll link to it instead &amp; clients will show a preview.').show();
+            addQtPrefix(replyToUrl);
+        } else {
+            // Quoting is allowed
+            $warning.hide();
+            removeQtPrefix();
+        }
+    }
+
+    // Add QT: prefix to input text
+    function addQtPrefix(url) {
+        const $input = $('#inputText');
+        const currentText = $input.val();
+        const qtPrefix = 'QT: ' + url + '\n\n';
+
+        // Don't add if already present
+        if (!currentText.startsWith(qtPrefix)) {
+            // Remove any existing QT prefix first (in case URL changed)
+            const cleanText = removeQtPrefixFromText(currentText);
+            $input.val(qtPrefix + cleanText);
+            $input.trigger('input');
+        }
+    }
+
+    // Remove QT: prefix from input text
+    function removeQtPrefix() {
+        const $input = $('#inputText');
+        const currentText = $input.val();
+        const cleanText = removeQtPrefixFromText(currentText);
+
+        if (cleanText !== currentText) {
+            $input.val(cleanText);
+            $input.trigger('input');
+        }
+    }
+
+    // Helper to remove QT prefix from text string
+    function removeQtPrefixFromText(text) {
+        // Match QT: followed by a URL and optional newlines
+        return text.replace(/^QT: https?:\/\/\S+\n*/, '');
+    }
 
     // Get the username prefix string to prepend to subsequent posts
     function getUsernamePrefix(usernames) {
@@ -361,6 +437,9 @@ $(document).ready(function() {
         cachedReplyTo = null;
         $('#replyToPreview').hide();
         updateReplyToStatus('');
+        // Reset quote checkbox
+        $('#quotePostCheckbox').prop('checked', false).prop('disabled', true);
+        $('#quotePostWarning').hide();
         $('#inputText').trigger('input');
     }
 
@@ -631,9 +710,11 @@ $(document).ready(function() {
             }
         }
 
-        // Handle reply-to URL
+        // Handle reply-to URL and quote post
         const replyToUrl = $('#replyToUrl').val().trim();
         let replyToId = null;
+        let quotedStatusId = null;
+        const isQuotePost = $('#quotePostCheckbox').prop('checked');
 
         if (replyToUrl) {
             const parsed = parsePostUrl(replyToUrl);
@@ -643,8 +724,9 @@ $(document).ready(function() {
             }
             if (!parsed.isEmpty) {
                 // Use cached data if URL matches, otherwise resolve
+                let resolvedPost = null;
                 if (cachedReplyTo && cachedReplyTo.url === replyToUrl) {
-                    replyToId = cachedReplyTo.resolvedId;
+                    resolvedPost = cachedReplyTo;
                 } else {
                     $('#mastodonButton').prop('disabled', true);
                     showPostStatus('Resolving reply-to post...', false);
@@ -652,13 +734,26 @@ $(document).ready(function() {
                         const resolved = await MastodonAPI.resolvePostUrl(
                             credentials.instance, credentials.accessToken, replyToUrl
                         );
-                        replyToId = resolved.id;
+                        resolvedPost = {
+                            resolvedId: resolved.id,
+                            quoteApproval: resolved.quote_approval || null
+                        };
                     } catch (error) {
                         hidePostStatus();
                         showErrorModal('Failed to resolve reply-to post: ' + error.message);
                         $('#mastodonButton').prop('disabled', false);
                         return;
                     }
+                }
+
+                // Determine if this is a quote post or a reply
+                if (isQuotePost && isQuotingAllowed(resolvedPost.quoteApproval)) {
+                    // Use quoted_status_id for quote posts (when allowed)
+                    quotedStatusId = resolvedPost.resolvedId;
+                } else {
+                    // Use in_reply_to_id for regular replies
+                    // (also used when quote is requested but not allowed - QT prefix handles the link)
+                    replyToId = resolvedPost.resolvedId;
                 }
             }
         }
@@ -674,7 +769,8 @@ $(document).ready(function() {
                 chunks,
                 visibility,
                 contentWarning,
-                replyToId
+                replyToId,
+                quotedStatusId
             );
 
             if (result.success) {
@@ -820,9 +916,14 @@ $(document).ready(function() {
         cachedReplyTo = null;
         updateReplyToLocalStorage(url);
 
+        // Reset quote checkbox state when URL changes
+        $('#quotePostCheckbox').prop('checked', false);
+        $('#quotePostWarning').hide();
+
         if (!url) {
             $('#replyToPreview').hide();
             updateReplyToStatus('');
+            updateQuoteCheckboxState(false);
             return;
         }
 
@@ -830,12 +931,14 @@ $(document).ready(function() {
         if (!parsed.valid) {
             updateReplyToStatus(parsed.error, true);
             $('#replyToPreview').hide();
+            updateQuoteCheckboxState(false);
             return;
         }
 
         const credentials = MastodonAPI.getCredentials();
         if (!credentials) {
             updateReplyToStatus('Log in to preview parent post', false);
+            updateQuoteCheckboxState(false);
             return;
         }
 
@@ -853,7 +956,8 @@ $(document).ready(function() {
                 url: url,
                 resolvedId: post.id,
                 authorAcct: '@' + fullAcct,
-                authorDisplayName: post.account.display_name
+                authorDisplayName: post.account.display_name,
+                quoteApproval: post.quote_approval || null
             };
 
             // Show preview
@@ -861,6 +965,9 @@ $(document).ready(function() {
             $('#replyToContent').html(post.content);  // Mastodon returns HTML
             $('#replyToPreview').show();
             updateReplyToStatus('', false);
+
+            // Enable quote checkbox now that we have a valid resolved post
+            updateQuoteCheckboxState(true);
 
             // Build list of usernames to prepend to input text
             // 1. Extract mentions from the parent post content (strip HTML first)
@@ -884,8 +991,14 @@ $(document).ready(function() {
         } catch (error) {
             updateReplyToStatus('Could not fetch post: ' + error.message, true);
             $('#replyToPreview').hide();
+            updateQuoteCheckboxState(false);
         }
     }, 800));
+
+    // Quote checkbox change handler
+    $('#quotePostCheckbox').on('change', function() {
+        handleQuoteCheckboxChange();
+    });
 
     // Clear reply-to button handler
     $('#clearReplyTo').on('click', function() {
@@ -894,6 +1007,10 @@ $(document).ready(function() {
         updateReplyToLocalStorage('');
         $('#replyToPreview').hide();
         updateReplyToStatus('');
+        // Reset quote checkbox
+        $('#quotePostCheckbox').prop('checked', false).prop('disabled', true);
+        $('#quotePostWarning').hide();
+        removeQtPrefix();
     });
 
     // Check for OAuth callback on page load
