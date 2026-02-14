@@ -4,7 +4,7 @@
 
 .post-container {
   position: relative;
-  margin-bottom: 50px;
+  margin-bottom: 3.125em;
 }
 
 .chunk-text {
@@ -18,24 +18,24 @@
 
 .char-count {
   position: absolute;
-  top: 4px;
-  right: 10px;
+  top: 0.25em;
+  right: 0.6em;
   font-size: 0.9rem;
   color: #555;
 }
 
 .btn-copy {
   position: absolute;
-  top: 4px !important;
-  left: -1px !important;
+  top: 0.25em !important;
+  left: -0.0625em !important;
   font-size: 0.9rem;
   background-color: #007bff;
   color: #fff;
   border: none;
   cursor: pointer;
-  padding: 5px 10px;
-  border-radius: 3px;
-  box-shadow: 1px 1px 5px rgba(0,0,0,0.1);
+  padding: 0.3125em 0.6em;
+  border-radius: 0.2em;
+  box-shadow: 0.0625em 0.0625em 0.3125em rgba(0,0,0,0.1);
 }
 
 .btn-copy:hover {
@@ -48,13 +48,13 @@
 }
 
 h3, textarea {  /* Assuming your headlines are h3 elements */
-  margin-bottom: 15px;  /* Adjust the value as needed */
-  margin-top: 15px;  /* Adjust the value as needed */
+  margin-bottom: 0.9375em;  /* Adjust the value as needed */
+  margin-top: 0.9375em;  /* Adjust the value as needed */
 }
 
 ol {  /* Assuming your headlines are h2 elements */
-  margin-top: 50px;  /* Adjust the value as needed */
-  margin-bottom: 50px;  /* Adjust the value as needed */
+  margin-top: 3.125em;  /* Adjust the value as needed */
+  margin-bottom: 3.125em;  /* Adjust the value as needed */
   color: #888;
 }
 
@@ -64,8 +64,8 @@ ol {  /* Assuming your headlines are h2 elements */
 }
 
 #charLimit {
-  width: 70px;
-  margin-right: 10px !important;
+  width: 4.375em;
+  margin-right: 0.6em !important;
 }
 
 .content-warning-display {
@@ -74,16 +74,16 @@ ol {  /* Assuming your headlines are h2 elements */
   border-radius: 0.2em;
 }
 .btn-secondary {
-  margin-top: -5px;
+  margin-top: -0.3125em;
   left: 0;
   font-size: 0.9rem;
   background-color: #007bff;
   color: #fff;
   border: none;
   cursor: pointer;
-  padding: 5px 10px;
-  border-radius: 3px;
-  box-shadow: 1px 1px 5px rgba(0,0,0,0.1);
+  padding: 0.3125em 0.6em;
+  border-radius: 0.2em;
+  box-shadow: 0.0625em 0.0625em 0.3125em rgba(0,0,0,0.1);
 }
 
 @keyframes fadeIn {
@@ -100,8 +100,8 @@ ol {  /* Assuming your headlines are h2 elements */
 }
 
 .jumbotron {
-  padding-top: 10px !important;
-  padding-bottom: 10px !important;
+  padding-top: 0.6em !important;
+  padding-bottom: 0.6em !important;
 }
 
 .btn-copy.copied {
@@ -114,8 +114,8 @@ ol {  /* Assuming your headlines are h2 elements */
   left: 0;
   bottom: 0;
   width: 100%;
-  padding-top: 2px !important; /* reduce padding-top to half */
-  padding-bottom: 2px !important; /* reduce padding-bottom to half */
+  padding-top: 0.125em !important; /* reduce padding-top to half */
+  padding-bottom: 0.125em !important; /* reduce padding-bottom to half */
   font-size: 0.9em;
 }
 
@@ -158,29 +158,29 @@ label {
 
 .modal-content {
   background-color: #fff;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  max-width: 400px;
+  padding: 1.875em;
+  border-radius: 0.5em;
+  box-shadow: 0 0.25em 1.25em rgba(0, 0, 0, 0.3);
+  max-width: 25em;
   width: 90%;
   position: relative;
 }
 
 .modal-content h3 {
   margin-top: 0;
-  margin-bottom: 15px;
+  margin-bottom: 0.9375em;
 }
 
 .modal-content p {
-  margin-bottom: 10px;
+  margin-bottom: 0.6em;
   color: #666;
 }
 
 .modal-close {
   position: absolute;
-  top: 10px;
-  right: 15px;
-  font-size: 24px;
+  top: 0.6em;
+  right: 0.9375em;
+  font-size: 1.5em;
   cursor: pointer;
   color: #888;
   line-height: 1;
@@ -192,7 +192,7 @@ label {
 
 .modal-error {
   color: #dc3545;
-  margin-top: 10px;
+  margin-top: 0.6em;
   font-size: 0.9rem;
 }
 
@@ -206,35 +206,35 @@ label {
 
 /* Mastodon Controls */
 .mastodon-controls {
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid #dee2e6;
+  margin-top: 0.9375em;
+  padding-top: 0.9375em;
+  border-top: 0.0625em solid #dee2e6;
 }
 
 .mastodon-controls button {
-  margin-right: 10px;
+  margin-right: 0.6em;
 }
 
 /* Post Status Message */
 .post-status-message {
   display: inline-block;
-  margin-left: 10px;
-  padding: 5px 10px;
-  border-radius: 4px;
+  margin-left: 0.6em;
+  padding: 0.3125em 0.6em;
+  border-radius: 0.25em;
   font-size: 0.9rem;
 }
 
 .status-success {
   color: #155724;
   background-color: #d4edda;
-  border: 1px solid #c3e6cb;
+  border: 0.0625em solid #c3e6cb;
 }
 
 #errorModalMessage,
 .status-error {
   color: #721c24;
   background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
+  border: 0.0625em solid #f5c6cb;
 }
 #errorModalMessage,
 p.status-error {
@@ -243,7 +243,7 @@ p.status-error {
 
 /* Visibility Selector */
 .visibility-selector {
-  margin-bottom: 10px;
+  margin-bottom: 0.6em;
 }
 
 .visibility-selector label {
@@ -252,11 +252,11 @@ p.status-error {
 
 /* Reply-to Section (Accordion) */
 #replyToSection {
-  margin-top: 10px;
+  margin-top: 0.6em;
 }
 
 #replyToSection .accordion-item {
-  border: 1px solid rgba(0, 0, 0, 0.125);
+  border: 0.0625em solid rgba(0, 0, 0, 0.125);
   border-radius: 0.25rem;
 }
 
@@ -316,7 +316,7 @@ p.status-error {
 }
 
 #replyToSection .input-group {
-  margin-bottom: 5px;
+  margin-bottom: 0.3125em;
 }
 
 #replyToSection #clearReplyTo {
@@ -338,16 +338,16 @@ p.status-error {
 }
 
 .reply-to-preview {
-  margin-top: 8px;
-  padding: 10px;
+  margin-top: 0.5em;
+  padding: 0.6em;
   background: #e9ecef;
-  border-radius: 4px;
-  border-left: 3px solid #6c757d;
+  border-radius: 0.25em;
+  border-left: 0.2em solid #6c757d;
   font-size: 0.9em;
 }
 
 .reply-to-preview .preview-header {
-  margin-bottom: 5px;
+  margin-bottom: 0.3125em;
   color: #495057;
 }
 
@@ -357,14 +357,14 @@ p.status-error {
 }
 
 .reply-to-preview .carousel {
-  margin-top: 8px;
-  border-radius: 4px;
+  margin-top: 0.5em;
+  border-radius: 0.25em;
   overflow: hidden;
 }
 
 /* Quote Post Option */
 .quote-post-option {
-  margin-top: 10px;
+  margin-top: 0.6em;
 }
 
 .quote-post-option label {
@@ -386,11 +386,11 @@ p.status-error {
 }
 
 .quote-warning {
-  margin-top: 8px;
-  padding: 8px 12px;
+  margin-top: 0.5em;
+  padding: 0.5em 0.75em;
   background-color: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 4px;
+  border: 0.0625em solid #ffc107;
+  border-radius: 0.25em;
   color: #856404;
   font-size: 0.9em;
 }
