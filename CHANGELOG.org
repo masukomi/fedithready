@@ -1,3 +1,11 @@
+* v1.7.0
+
+** [added]
+- added link to our mastodon account in the footer
+- visibility defaults to that of replyTo post
+- maintains content warning of post you're replying to
+- added content warning to preview of reply text
+
 * v1.6.1
 
 ** [fixed]
