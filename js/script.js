@@ -987,6 +987,11 @@ $(document).ready(function() {
 
             // Show preview
             $('#replyToAuthor').text(post.account.display_name + ' (' + cachedReplyTo.authorAcct + ')');
+            if (post.spoiler_text) {
+                $('#replyToCW').text(post.spoiler_text).show();
+            } else {
+                $('#replyToCW').hide();
+            }
             $('#replyToContent').html(post.content);  // Mastodon returns HTML
             $('#replyToPreview').show();
             updateReplyToStatus('', false);
