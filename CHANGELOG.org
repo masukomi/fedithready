@@ -1,3 +1,15 @@
+* v1.8.0
+
+** [added]
+- updated bootstrap to v5.3.8
+- displays previews of replyTo post images
+
+** [refactored]
+- redefined css sizes in em instead of px
+
+** [cleaned]
+- preview of replyTo post no longer scrolls
+
 * v1.7.0
 
 ** [added]
