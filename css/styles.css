@@ -353,7 +353,6 @@ p.status-error {
 
 .reply-to-preview .preview-content {
   color: #212529;
-  max-height: 150px;
   overflow-y: auto;
 }
 
