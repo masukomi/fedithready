@@ -357,6 +357,12 @@ p.status-error {
   overflow-y: auto;
 }
 
+.reply-to-preview .carousel {
+  margin-top: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
 /* Quote Post Option */
 .quote-post-option {
   margin-top: 10px;
