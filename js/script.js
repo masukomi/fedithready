@@ -1006,6 +1006,12 @@ $(document).ready(function() {
                 $('#visibilitySelect').val(post.visibility).trigger('change');
             }
 
+            // Inherit content warning from the parent post if ours is empty
+            if (post.spoiler_text && $('#contentWarning').val().trim() === '') {
+                $('#contentWarning').val(post.spoiler_text);
+                $('#contentWarning').trigger('input');
+            }
+
             // Build list of usernames to prepend to input text
             // 1. Extract mentions from the parent post content (strip HTML first)
             const plainTextContent = post.content.replace(/<[^>]*>/g, ' ');
