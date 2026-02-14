@@ -993,6 +993,26 @@ $(document).ready(function() {
                 $('#replyToCW').hide();
             }
             $('#replyToContent').html(post.content);  // Mastodon returns HTML
+
+            // Show attached images in a carousel
+            const images = (post.media_attachments || []).filter(a => a.type === 'image');
+            const $carouselInner = $('#replyToCarouselInner');
+            $carouselInner.empty();
+            if (images.length > 0) {
+                images.forEach(function(img, i) {
+                    const activeClass = i === 0 ? ' active' : '';
+                    const alt = img.description ? img.description : '';
+                    $carouselInner.append(
+                        '<div class="carousel-item' + activeClass + '">' +
+                            '<img src="' + img.preview_url + '" class="d-block w-100" alt="' + $('<span>').text(alt).html() + '">' +
+                        '</div>'
+                    );
+                });
+                $('#replyToCarousel').show();
+            } else {
+                $('#replyToCarousel').hide();
+            }
+
             $('#replyToPreview').show();
             updateReplyToStatus('', false);
 
