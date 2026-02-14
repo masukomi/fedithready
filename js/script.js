@@ -394,6 +394,25 @@ $(document).ready(function() {
         }
     }
 
+    // Save the user's current visibility before auto-changing it for a reply.
+    // Only saves if there isn't already a saved value (to preserve the original
+    // choice when the reply-to URL changes multiple times).
+    function savePreReplyVisibility(visibility) {
+        if (typeof(Storage) !== "undefined" && !localStorage.getItem('preReplyVisibility')) {
+            localStorage.setItem('preReplyVisibility', visibility);
+        }
+    }
+
+    // Retrieve and remove the saved pre-reply visibility.
+    function restorePreReplyVisibility() {
+        if (typeof(Storage) !== "undefined") {
+            const saved = localStorage.getItem('preReplyVisibility');
+            localStorage.removeItem('preReplyVisibility');
+            return saved;
+        }
+        return null;
+    }
+
     function retrieveLocalStorage() {
         if (typeof(Storage) !== "undefined") {
             return localStorage.getItem('inputText');
@@ -443,6 +462,7 @@ $(document).ready(function() {
         // Reset quote checkbox
         $('#quotePostCheckbox').prop('checked', false).prop('disabled', true);
         $('#quotePostWarning').hide();
+        $('#visibilitySelect').val('public')
         $('#inputText').trigger('input');
     }
 
@@ -547,6 +567,8 @@ $(document).ready(function() {
     });
 
     $('#visibilitySelect').on('change', function() {
+        savePreReplyVisibility($('#visibilitySelect').val())
+
         // Auto-check "Include usernames" when Direct is selected
         if ($(this).val() === 'direct') {
             $('#includeUsernamesCheckbox').prop('checked', true);
@@ -972,6 +994,18 @@ $(document).ready(function() {
             // Enable quote checkbox now that we have a valid resolved post
             updateQuoteCheckboxState(true);
 
+            // Match visibility to the parent post
+            // NOTE: "private" is intentionally excluded.
+            // If the thing you're replying to is followers only,
+            // AND your reply is followers only, then the only people
+            // who'll be able to see the whole thread are people
+            // who follow them and you.
+            const recognizedVisibilities = ['public', 'unlisted', 'direct'];
+            if (post.visibility && recognizedVisibilities.includes(post.visibility)) {
+                savePreReplyVisibility($('#visibilitySelect').val());
+                $('#visibilitySelect').val(post.visibility).trigger('change');
+            }
+
             // Build list of usernames to prepend to input text
             // 1. Extract mentions from the parent post content (strip HTML first)
             const plainTextContent = post.content.replace(/<[^>]*>/g, ' ');
@@ -1014,6 +1048,11 @@ $(document).ready(function() {
         $('#quotePostCheckbox').prop('checked', false).prop('disabled', true);
         $('#quotePostWarning').hide();
         removeQtPrefix();
+        // Restore visibility to what it was before replying
+        const savedVisibility = restorePreReplyVisibility();
+        if (savedVisibility) {
+            $('#visibilitySelect').val(savedVisibility);
+        }
     });
 
     // Check for OAuth callback on page load
