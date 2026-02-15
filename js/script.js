@@ -380,6 +380,20 @@ $(document).ready(function() {
         }
     }
 
+    function updateCharLimitLocalStorage(limit) {
+        if (typeof(Storage) !== "undefined") {
+            localStorage.setItem('charLimit', limit);
+        }
+    }
+
+    function retrieveCharLimitLocalStorage() {
+        if (typeof(Storage) !== "undefined") {
+            return localStorage.getItem('charLimit');
+        } else {
+            return null;
+        }
+    }
+
     function updateReplyToLocalStorage(url) {
         if (typeof(Storage) !== "undefined") {
             localStorage.setItem('replyToUrl', url || '');
@@ -430,6 +444,11 @@ $(document).ready(function() {
                 $('#inputText').val(text);
             }
         }
+        // Restore character limit
+        const savedCharLimit = retrieveCharLimitLocalStorage();
+        if (savedCharLimit !== null) {
+            $('#charLimit').val(savedCharLimit);
+        }
         // Also restore content warning
         if ($('#contentWarning').val() === "") {
             const cw = retrieveContentWarningLocalStorage();
@@ -477,6 +496,10 @@ $(document).ready(function() {
     }
 
     /// END OF STANDARD FUNCTIONS
+
+    $('#charLimit').on('input', function() {
+        updateCharLimitLocalStorage($(this).val());
+    });
 
     $('#inputText, #contentWarning').on('input', debounce(function() {
         const text = $('#inputText').val();
