@@ -1,3 +1,11 @@
+* v1.8.1
+
+** [fixed]
+- char limit now persisits between sessions
+
+** [cleaned]
+- updated advice / usage section at bottom
+
 * v1.8.0
 
 ** [added]
