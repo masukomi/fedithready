@@ -186,6 +186,14 @@
             <p>Enter your Mastodon instance domain:</p>
             <input type="text" id="instanceInput" class="form-control" placeholder="mastodon.social">
             <button id="authorizeBtn" class="btn btn-primary mt-3">Authorize</button>
+            <p class="hint">
+                This should be the domain you use to access posts.
+                For example, if your username is
+                <code>@mary@mastodon.example</code>,
+                but your user page is at <code>social.mastodon.example/mary</code>,
+                you should fill in <code>social.mastodon.example</code>.
+            </p>
+
         </div>
 
         <div id="modalError" class="modal-error" style="display: none;"></div>
