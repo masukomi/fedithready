@@ -543,7 +543,7 @@ $(document).ready(function() {
             const formattedChunk = formatChunkText(displayText);
 
             let paginationText = "";
-            if (paginationEnabled && totalPosts > 1) {
+            if (paginationEnabled) {
                 paginationText = getPaginationText(index, totalPosts);
             }
             let copyButtonText = getCopyText(index, totalPosts);
@@ -568,7 +568,7 @@ $(document).ready(function() {
                         <span class="char-count">${charCount} characters</span>
                         ${cwHtml}
                         ${formattedChunk}
-                        ${paginationText ? `<br><span class="post-number">${paginationText}</span>` : ''}
+                        ${(paginationText && totalPosts > 1) ? `<br><span class="post-number">${paginationText}</span>` : ''}
                     </div>
                 </div>
             `);
