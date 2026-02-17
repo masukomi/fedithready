@@ -1,3 +1,10 @@
+* v1.9.1
+
+** [fixed]
+- added pagination text length back to calculation when only 1 post
+- removed spurious BR tags before paginationText
+- changing the maximum number of characters now re-chunks text
+
 * v1.9.0
 
 ** [added]
