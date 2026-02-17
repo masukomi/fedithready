@@ -543,7 +543,7 @@ $(document).ready(function() {
             const formattedChunk = formatChunkText(displayText);
 
             let paginationText = "";
-            if (paginationEnabled) {
+            if (paginationEnabled && totalPosts > 1) {
                 paginationText = getPaginationText(index, totalPosts);
             }
             let copyButtonText = getCopyText(index, totalPosts);
@@ -707,7 +707,7 @@ $(document).ready(function() {
             fullText += chunk.text;
 
             // Add pagination
-            if (paginationEnabled) {
+            if (paginationEnabled && totalPosts > 1) {
                 fullText += getPaginationText(index, totalPosts);
             }
 
