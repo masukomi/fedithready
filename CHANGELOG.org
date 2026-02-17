@@ -1,3 +1,9 @@
+* v1.9.0
+
+** [added]
+- added hint for login domain
+- no longer displays thread count for single post
+
 * v1.8.1
 
 ** [fixed]
