@@ -567,7 +567,7 @@ $(document).ready(function() {
                         >${copyButtonText}</button>
                         <span class="char-count">${charCount} characters</span>
                         ${cwHtml}
-                        ${formattedChunk}
+                        ${(paginationText && totalPosts > 1) ? formattedChunk.replace(/(<br\s*\/?>)+$/, '') : formattedChunk}
                         ${(paginationText && totalPosts > 1) ? `<br><span class="post-number">${paginationText}</span>` : ''}
                     </div>
                 </div>
