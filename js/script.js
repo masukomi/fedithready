@@ -499,6 +499,7 @@ $(document).ready(function() {
 
     $('#charLimit').on('input', function() {
         updateCharLimitLocalStorage($(this).val());
+        $('#inputText').trigger('input');
     });
 
     $('#inputText, #contentWarning').on('input', debounce(function() {
