@@ -1,3 +1,8 @@
+* v1.10.0
+
+** [added]
+- autocomplete of usernames
+
 * v1.9.1
 
 ** [fixed]
