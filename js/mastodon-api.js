@@ -334,6 +334,16 @@ const MastodonAPI = (function() {
         };
     }
 
+    // Search for accounts by query string
+    async function searchAccounts(instance, accessToken, query, limit = 5) {
+        const url = `${getInstanceURL(instance)}/api/v1/accounts/search?q=${encodeURIComponent(query)}&limit=${limit}&resolve=false`;
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        if (!response.ok) throw new Error(await response.text());
+        return response.json();
+    }
+
     // Get custom emojis (for future use)
     async function getCustomEmojis(instance, accessToken) {
         const instanceURL = getInstanceURL(instance);
@@ -361,6 +371,7 @@ const MastodonAPI = (function() {
         postThread,
         getCustomEmojis,
         normalizeInstance,
-        resolvePostUrl
+        resolvePostUrl,
+        searchAccounts
     };
 })();

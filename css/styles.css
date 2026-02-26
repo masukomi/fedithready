@@ -402,3 +402,49 @@ p.status-error {
   padding: 0.5em;
   background: #e0e0e0;
 }
+
+/* Mention autocomplete dropdown */
+.mention-autocomplete-dropdown {
+    position: fixed;
+    z-index: 1050;
+    background: #fff;
+    border: 0.0625em solid #ccc;
+    border-radius: 0.25em;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 12.5em;
+    overflow-y: auto;
+    box-shadow: 0 0.125em 0.5em rgba(0,0,0,0.15);
+    min-width: 12.5em;
+}
+
+.mention-autocomplete-dropdown li {
+    display: flex;
+    align-items: center;
+    padding: 0.375em 0.625em;
+    cursor: pointer;
+    gap: 0.5em;
+}
+
+.mention-autocomplete-dropdown li:hover,
+.mention-autocomplete-dropdown li.active {
+    background: #e8f0fe;
+}
+
+.mention-autocomplete-dropdown li img {
+    width: 1.5em;
+    height: 1.5em;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.mention-autocomplete-dropdown li .acct-name {
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.mention-autocomplete-dropdown li .acct-handle {
+    font-size: 0.8em;
+    color: #666;
+}

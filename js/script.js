@@ -495,6 +495,72 @@ $(document).ready(function() {
         }
     }
 
+    // Mirror-div technique: returns pixel coordinates of a caret position within a textarea
+    function getCaretCoordinates(element, position) {
+        const div = document.createElement('div');
+        const style = div.style;
+        const computed = window.getComputedStyle(element);
+
+        style.whiteSpace = 'pre-wrap';
+        style.wordWrap = 'break-word';
+        style.position = 'absolute';
+        style.visibility = 'hidden';
+        style.top = '0';
+        style.left = '0';
+
+        const properties = [
+            'direction', 'boxSizing', 'width', 'height', 'overflowX', 'overflowY',
+            'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth',
+            'borderStyle', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
+            'fontStyle', 'fontVariant', 'fontWeight', 'fontStretch', 'fontSize',
+            'fontSizeAdjust', 'lineHeight', 'fontFamily', 'textAlign', 'textTransform',
+            'textIndent', 'textDecoration', 'letterSpacing', 'wordSpacing', 'tabSize'
+        ];
+
+        properties.forEach(function(prop) {
+            style[prop] = computed[prop];
+        });
+
+        div.textContent = element.value.substring(0, position);
+        const span = document.createElement('span');
+        span.textContent = element.value.substring(position) || '.';
+        div.appendChild(span);
+        document.body.appendChild(div);
+
+        const coordinates = {
+            top: span.offsetTop + parseInt(computed.borderTopWidth),
+            left: span.offsetLeft + parseInt(computed.borderLeftWidth)
+        };
+
+        document.body.removeChild(div);
+        return coordinates;
+    }
+
+    // Returns the active @mention being typed at the caret, or null if none
+    function getActiveMention(textarea) {
+        const text = textarea.value;
+        const caret = textarea.selectionStart;
+        const beforeCaret = text.slice(0, caret);
+        const match = beforeCaret.match(/@([^\s@]*)$/);
+        if (!match || match[1].length === 0) return null;
+        return {
+            query: match[1],
+            startIndex: caret - match[0].length,
+            endIndex: caret
+        };
+    }
+
+    // Insert a completed @mention into the textarea and trigger a preview update
+    function insertMention(textarea, mention, acct) {
+        const text = textarea.value;
+        const insertion = '@' + acct + ' ';
+        const newText = text.slice(0, mention.startIndex) + insertion + text.slice(mention.endIndex);
+        textarea.value = newText;
+        const newCaret = mention.startIndex + insertion.length;
+        textarea.selectionStart = textarea.selectionEnd = newCaret;
+        $(textarea).trigger('input');
+    }
+
     /// END OF STANDARD FUNCTIONS
 
     $('#charLimit').on('input', function() {
@@ -1200,5 +1266,123 @@ $(document).ready(function() {
 
     // Check for replyToUrl query param after everything is set up
     handleReplyToUrlQueryParam();
+
+    // ============================================
+    // Mention Autocomplete
+    // ============================================
+
+    const $mentionDropdown = $('<ul id="mentionAutocomplete" class="mention-autocomplete-dropdown"></ul>').hide();
+    $('body').append($mentionDropdown);
+
+    // Tracks the mention that was active when the search was fired
+    let activeMentionForAutocomplete = null;
+
+    const debouncedMentionSearch = debounce(async function() {
+        const credentials = MastodonAPI.getCredentials();
+        if (!credentials) return;
+
+        const textarea = document.getElementById('inputText');
+        const mention = getActiveMention(textarea);
+
+        if (!mention) {
+            $mentionDropdown.hide();
+            activeMentionForAutocomplete = null;
+            return;
+        }
+
+        let accounts;
+        try {
+            accounts = await MastodonAPI.searchAccounts(credentials.instance, credentials.accessToken, mention.query, 5);
+        } catch (e) {
+            $mentionDropdown.hide();
+            return;
+        }
+
+        if (!accounts || accounts.length === 0) {
+            $mentionDropdown.hide();
+            return;
+        }
+
+        // Re-check that the mention is still active (user may have typed more since the request)
+        const currentMention = getActiveMention(textarea);
+        if (!currentMention || currentMention.startIndex !== mention.startIndex) {
+            $mentionDropdown.hide();
+            return;
+        }
+
+        activeMentionForAutocomplete = currentMention;
+
+        $mentionDropdown.empty();
+        accounts.forEach(function(account) {
+            const displayName = account.display_name || account.acct;
+            const handle = '@' + account.acct;
+            const $li = $('<li></li>');
+            const $img = $('<img>').attr('src', account.avatar).attr('alt', '');
+            const $name = $('<span class="acct-name"></span>').text(displayName);
+            const $handle = $('<span class="acct-handle"></span>').text(handle);
+            $li.append($img).append($name).append($handle);
+            $li.on('click', function() {
+                insertMention(textarea, activeMentionForAutocomplete, account.acct);
+                $mentionDropdown.hide();
+                activeMentionForAutocomplete = null;
+                textarea.focus();
+            });
+            $mentionDropdown.append($li);
+        });
+
+        // Position the dropdown at the caret using fixed coordinates
+        const textareaRect = textarea.getBoundingClientRect();
+        const caretCoords = getCaretCoordinates(textarea, activeMentionForAutocomplete.startIndex);
+        const computedStyle = window.getComputedStyle(textarea);
+        const lineHeight = parseFloat(computedStyle.lineHeight) || parseFloat(computedStyle.fontSize) * 1.4 || 20;
+        const dropdownTop = textareaRect.top + caretCoords.top - textarea.scrollTop + lineHeight;
+        const dropdownLeft = textareaRect.left + caretCoords.left;
+        $mentionDropdown.css({ top: dropdownTop + 'px', left: dropdownLeft + 'px' }).show();
+    }, 200);
+
+    // Trigger autocomplete search on keyup (skip navigation/modifier keys)
+    $('#inputText').on('keyup', function(e) {
+        const ignoredKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+                             'Enter', 'Tab', 'Escape', 'Shift', 'Control', 'Alt', 'Meta'];
+        if (ignoredKeys.includes(e.key)) return;
+        debouncedMentionSearch();
+    });
+
+    // Keyboard navigation within the dropdown
+    $('#inputText').on('keydown', function(e) {
+        if (!$mentionDropdown.is(':visible')) return;
+
+        const $items = $mentionDropdown.find('li');
+        const $active = $mentionDropdown.find('li.active');
+        const activeIndex = $items.index($active);
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            $items.removeClass('active');
+            $items.eq(activeIndex < $items.length - 1 ? activeIndex + 1 : 0).addClass('active');
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            $items.removeClass('active');
+            $items.eq(activeIndex > 0 ? activeIndex - 1 : $items.length - 1).addClass('active');
+        } else if (e.key === 'Enter' || e.key === 'Tab') {
+            const $selected = $mentionDropdown.find('li.active');
+            if ($selected.length && activeMentionForAutocomplete) {
+                e.preventDefault();
+                $selected.trigger('click');
+            } else {
+                $mentionDropdown.hide();
+            }
+        } else if (e.key === 'Escape') {
+            $mentionDropdown.hide();
+            activeMentionForAutocomplete = null;
+        }
+    });
+
+    // Close dropdown when clicking outside the textarea or dropdown
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('#mentionAutocomplete, #inputText').length) {
+            $mentionDropdown.hide();
+        }
+    });
 
 });
