@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+<head>
+<!-- 2026-03-22 Sun 14:10 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FediThready Documentation</title>
+<meta name="author" content="masukomi" />
+<meta name="generator" content="Org Mode" />
+<link rel="stylesheet" type="text/css" href="readtheorg_theme/css/htmlize.css"/>
+<link rel="stylesheet" type="text/css" href="readtheorg_theme/css/readtheorg.css"/>
+<link rel="stylesheet" type="text/css" href="readtheorg_theme/css/code-copy.css"/>
+<link rel="stylesheet" type="text/css" href="readtheorg_theme/css/search.css"/>
+<script type="text/javascript" src="js/jquery-3.5.1.min.js"></script>
+<script type="text/javascript" src="js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/jquery.stickytableheaders.min.js"></script>
+<script type="text/javascript" src="readtheorg_theme/js/search.js"></script>
+<script type="text/javascript" src="readtheorg_theme/js/readtheorg.js"></script>
+<script type="text/javascript" src="readtheorg_theme/js/code-copy.js"></script>
+<style>#search-container, #search-container label {color: #b3b3b3; padding: 0.5em;}</style>
+</head>
+<body>
+<div id="content" class="content">
+<h1 class="title">FediThready Documentation</h1>
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#org56193cc">FediThready Documentation</a></li>
+<li><a href="#orgc08f795">Basic Usage</a></li>
+<li><a href="#org4f3e8e4">Manual Splits</a></li>
+<li><a href="#org27b8534">Content Warnings</a></li>
+<li><a href="#org39254f0">Connecting to Mastodon</a></li>
+<li><a href="#org5c9ab45">Post Visibility</a></li>
+<li><a href="#org87f83a7">Replying to a Post</a>
+<ul>
+<li><a href="#orgd8889a6">Quoting a Post</a></li>
+</ul>
+</li>
+<li><a href="#orgccce736">Working with Images</a>
+<ul>
+<li><a href="#orgdf3ebe1">Adding Images</a></li>
+<li><a href="#org2164055">How Image References Work</a></li>
+<li><a href="#org8eb82af">Alt Text</a></li>
+<li><a href="#org74e3727">Removing Images</a></li>
+<li><a href="#org5af3db2">Mastodon Image Limits</a></li>
+</ul>
+</li>
+<li><a href="#org7dc9e0c">Settings</a>
+<ul>
+<li><a href="#org535a3a8">Character Limit</a></li>
+<li><a href="#orge577b8d">Include Counter</a></li>
+<li><a href="#org24c5835">Attempt Sentence Endings</a></li>
+<li><a href="#org31d5077">Include Usernames in Replies</a></li>
+</ul>
+</li>
+<li><a href="#orgb6ce56c">Tips</a></li>
+<li><a href="#orgde8d8e6">Questions and Feedback</a></li>
+<li><a href="#org41f8c95">Source Code</a></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org56193cc" class="outline-2">
+<h2 id="org56193cc">FediThready Documentation</h2>
+<div class="outline-text-2" id="text-org56193cc">
+<p>
+FediThready splits long text into Mastodon-friendly chunks so you can post a
+thread without hitting the character limit. Everything runs in your browser —
+no account required to split and copy text, and no data ever leaves your
+device except when you choose to post directly to Mastodon.
+</p>
+</div>
+</div>
+<div id="outline-container-orgc08f795" class="outline-2">
+<h2 id="orgc08f795">Basic Usage</h2>
+<div class="outline-text-2" id="text-orgc08f795">
+<ol class="org-ol">
+<li>Type (or paste) your long text into the <b>Write Your Text</b> area.</li>
+<li>Watch the <b>Preview</b> panel on the right update in real time as FediThready
+splits your text into post-sized chunks.</li>
+<li>Adjust settings as needed (see <a href="#org7dc9e0c">Settings</a> below).</li>
+<li>Either:
+<ul class="org-ul">
+<li>Click <b>Copy</b> on each chunk and paste it into your Mastodon app
+one post at a time, or</li>
+<li><a href="#org39254f0">Connect to Mastodon</a> and post the whole thread in one click.</li>
+</ul></li>
+</ol>
+</div>
+</div>
+<div id="outline-container-org4f3e8e4" class="outline-2">
+<h2 id="org4f3e8e4">Manual Splits</h2>
+<div class="outline-text-2" id="text-org4f3e8e4">
+<p>
+FediThready will automatically split your text at sentence boundaries when
+possible, and at word boundaries otherwise. If you want to control exactly
+where a split happens, insert a divider line on its own line:
+</p>
+
+<ul class="org-ul">
+<li>Three or more hyphens: <code>---</code></li>
+<li>Three or more underscores: <code>___</code></li>
+<li>Three or more asterisks: <code>***</code></li>
+</ul>
+
+<p>
+Any of these force a split at that point, regardless of character count. The
+divider itself does not appear in the posted text.
+</p>
+
+<p>
+Example:
+</p>
+
+<pre class="example" id="org24e31bd">
+This is the first post in my thread.
+---
+This will be a separate post even though both fit in 500 characters.
+</pre>
+</div>
+</div>
+<div id="outline-container-org27b8534" class="outline-2">
+<h2 id="org27b8534">Content Warnings</h2>
+<div class="outline-text-2" id="text-org27b8534">
+<p>
+Type a content warning into the <b>optional content warning</b> field above the
+text area. It applies to every post in the thread. The content warning counts
+toward the character limit on Mastodon, so FediThready subtracts its length
+when calculating how much text fits in each chunk.
+</p>
+
+<p>
+When replying to a post that has a content warning, FediThready copies that
+warning into the field automatically (if the field is currently empty) so your
+reply inherits the same warning.
+</p>
+</div>
+</div>
+<div id="outline-container-org39254f0" class="outline-2">
+<h2 id="org39254f0">Connecting to Mastodon</h2>
+<div class="outline-text-2" id="text-org39254f0">
+<p>
+Connecting lets you post your entire thread directly from FediThready with one
+click. FediThready uses OAuth 2.0 — your password is never entered here.
+</p>
+
+<ol class="org-ol">
+<li>Click the green <b>Log in to post</b> button.</li>
+<li>Enter your Mastodon instance domain — the domain you use to access your
+account. For example:
+<ul class="org-ul">
+<li>If your username is <code>@alice@mastodon.social</code>, enter <code>mastodon.social</code>.</li>
+<li>If your username is <code>@alice@example.com</code> but your profile lives at
+<code>social.example.com/alice</code>, enter <code>social.example.com</code>.</li>
+</ul></li>
+<li>Click <b>Authorize</b>. You will be redirected to your instance to approve
+access.</li>
+<li>After approving, you are returned to FediThready and the button changes to
+<b>Post Thread</b>.</li>
+<li>Click <b>Post Thread</b> to publish. FediThready posts each chunk as a reply to
+the previous one, forming a thread automatically.</li>
+</ol>
+
+<p>
+To disconnect, click the <b>Disconnect</b> button. Your access token is removed
+from the browser; you can reconnect at any time.
+</p>
+
+<p>
+<b>Note:</b> Posting requires FediThready to be served over HTTP or HTTPS (i.e.
+loaded from a web server). If you open the file directly in your browser
+(<code>file://</code>), the Copy workflow still works but posting is disabled for
+security reasons. Visit <a href="https://fedithready.app">fedithready.app</a> to use posting.
+</p>
+</div>
+</div>
+<div id="outline-container-org5c9ab45" class="outline-2">
+<h2 id="org5c9ab45">Post Visibility</h2>
+<div class="outline-text-2" id="text-org5c9ab45">
+<p>
+Use the <b>Visibility</b> dropdown in the Preview panel to choose who can see your
+posts:
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Option</th>
+<th scope="col" class="org-left">Who can see it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Public</td>
+<td class="org-left">Everyone, appears in public timelines</td>
+</tr>
+
+<tr>
+<td class="org-left">Unlisted</td>
+<td class="org-left">Everyone with a link, not in public timelines</td>
+</tr>
+
+<tr>
+<td class="org-left">Followers only</td>
+<td class="org-left">Only your followers</td>
+</tr>
+
+<tr>
+<td class="org-left">Direct</td>
+<td class="org-left">Only people @-mentioned in the post</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+When replying to a post, FediThready automatically matches the visibility of
+the original post (with the exception of <b>Followers only</b> — if the original is
+followers-only, FediThready leaves your visibility at whatever you had
+selected, since you may not follow each other). Your previous visibility
+setting is restored when you clear the reply-to URL.
+</p>
+
+<p>
+<b>Direct visibility requirement:</b> If you select Direct, your first chunk must
+contain at least one <code>@username@instance</code> mention and the <b>Include usernames
+in replies</b> checkbox must be enabled. Otherwise FediThready will alert you
+before posting.
+</p>
+</div>
+</div>
+<div id="outline-container-org87f83a7" class="outline-2">
+<h2 id="org87f83a7">Replying to a Post</h2>
+<div class="outline-text-2" id="text-org87f83a7">
+<ol class="org-ol">
+<li>Log in to Mastodon (see <a href="#org39254f0">Connecting to Mastodon</a>).</li>
+<li>Click <b>Reply to post…</b> in the Preview panel to expand the reply section.</li>
+<li>Paste the URL of the post you want to reply to.</li>
+<li>FediThready looks up the post on your instance and shows a preview of it,
+including the author, content, and any attached images.</li>
+<li>Click <b>Post Thread</b> — the first chunk of your thread is sent as a reply to
+that post, and subsequent chunks chain off one another.</li>
+</ol>
+
+<p>
+The reply-to URL is saved between sessions so you can continue a draft later.
+Click the <code>×</code> button next to the URL field, or click <b>Clear Current Text</b>, to
+remove it.
+</p>
+</div>
+<div id="outline-container-orgd8889a6" class="outline-3">
+<h3 id="orgd8889a6">Quoting a Post</h3>
+<div class="outline-text-3" id="text-orgd8889a6">
+<p>
+After entering a reply-to URL, check <b>Quote this post instead of replying</b>.
+FediThready will attempt to quote the post (using Mastodon's quote feature)
+rather than reply to it.
+</p>
+
+<p>
+<b>If the instance or post does not support quoting:</b> FediThready falls back
+gracefully — it prepends a link to the original post at the start of your
+first chunk instead, so readers can still navigate to it. A warning is shown
+below the checkbox when this fallback will be used.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orgccce736" class="outline-2">
+<h2 id="orgccce736">Working with Images</h2>
+<div class="outline-text-2" id="text-orgccce736">
+<p>
+FediThready lets you attach images to specific posts in your thread by
+dragging them into the browser window.
+</p>
+</div>
+<div id="outline-container-orgdf3ebe1" class="outline-3">
+<h3 id="orgdf3ebe1">Adding Images</h3>
+<div class="outline-text-3" id="text-orgdf3ebe1">
+<p>
+Drag one or more image files from your desktop or file manager anywhere onto
+the FediThready page (or directly onto the text area). For each image:
+</p>
+
+<ol class="org-ol">
+<li>A numbered list entry appears below the text area showing a small thumbnail
+of the image.</li>
+<li>An <b>image reference</b> — a picture-frame emoji followed by a number in square
+brackets, e.g. <code>🖼[1]</code> — is inserted into your text at the cursor position.
+If the text area does not have focus, the indicator is appended at the end
+of your text.</li>
+</ol>
+
+<p>
+You can drag multiple images at once; each gets its own number in sequence.
+</p>
+</div>
+</div>
+<div id="outline-container-org2164055" class="outline-3">
+<h3 id="org2164055">How Image References Work</h3>
+<div class="outline-text-3" id="text-org2164055">
+<p>
+The number inside the brackets corresponds to the numbered entry in the list
+below the text area. The indicator tells FediThready which image should be
+attached to which post:
+</p>
+
+<ul class="org-ul">
+<li>Whatever chunk (post) the image reference ends up in is the post that will
+have the image attached to it when the thread is sent to Mastodon.</li>
+<li>If you write <code>🖼[1]</code> somewhere in your first paragraph and <code>🖼[2]</code> in the
+second, image 1 is attached to post 1 and image 2 is attached to post 2.</li>
+<li>You can move the image reference anywhere in your text to change which post the
+image is attached to.</li>
+<li>Multiple indicators in the same chunk attach multiple images to that post.</li>
+</ul>
+
+<p>
+The indicators are invisible in the Preview panel and are not included in the
+posted text — they are stripped before anything is sent to Mastodon.
+</p>
+
+<p>
+Image reference characters are <b>not counted</b> toward the character limit, so
+adding an indicator does not make a chunk shorter.
+</p>
+</div>
+</div>
+<div id="outline-container-org8eb82af" class="outline-3">
+<h3 id="org8eb82af">Alt Text</h3>
+<div class="outline-text-3" id="text-org8eb82af">
+<p>
+Beside each thumbnail in the image list there is a text area labeled
+<code>Alt Text…</code>. Enter a description of the image here. The description is sent
+to Mastodon as the media attachment's alt text, which is read by screen
+readers and shown when images cannot be displayed. Writing good alt text is
+an accessibility best practice.
+</p>
+</div>
+</div>
+<div id="outline-container-org74e3727" class="outline-3">
+<h3 id="org74e3727">Removing Images</h3>
+<div class="outline-text-3" id="text-org74e3727">
+<p>
+Click the <code>✕</code> button to the right of a thumbnail to remove that image.
+FediThready removes the corresponding indicator from your text and renumbers
+any remaining images and indicators to keep them consistent.
+</p>
+</div>
+</div>
+<div id="outline-container-org5af3db2" class="outline-3">
+<h3 id="org5af3db2">Mastodon Image Limits</h3>
+<div class="outline-text-3" id="text-org5af3db2">
+<p>
+Mastodon allows a maximum of <b>4 media attachments per post</b>. If a single chunk
+has more than 4 image indicators, FediThready shows an error below that
+chunk's preview and blocks posting until you move or remove indicators so no
+chunk exceeds 4.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org7dc9e0c" class="outline-2">
+<h2 id="org7dc9e0c">Settings</h2>
+<div class="outline-text-2" id="text-org7dc9e0c">
+</div>
+<div id="outline-container-org535a3a8" class="outline-3">
+<h3 id="org535a3a8">Character Limit</h3>
+<div class="outline-text-3" id="text-org535a3a8">
+<p>
+The default is 500 characters, which is the standard Mastodon limit. If your
+server allows longer posts (some instances set 1000 or more), change this
+number to match. Click <b>Apply Settings</b> after changing it.
+</p>
+</div>
+</div>
+<div id="outline-container-orge577b8d" class="outline-3">
+<h3 id="orge577b8d">Include Counter</h3>
+<div class="outline-text-3" id="text-orge577b8d">
+<p>
+When checked, a pagination suffix like <code>🧵 1/3</code> is appended to each post so
+readers know how many posts are in the thread. Enabled by default.
+</p>
+</div>
+</div>
+<div id="outline-container-org24c5835" class="outline-3">
+<h3 id="org24c5835">Attempt Sentence Endings</h3>
+<div class="outline-text-3" id="text-org24c5835">
+<p>
+When checked, FediThready tries to split at the end of a sentence rather than
+mid-sentence. If a sentence ending falls within 60 characters of the chunk
+boundary, the split happens there instead of at the last space. Enabled by
+default.
+</p>
+</div>
+</div>
+<div id="outline-container-org31d5077" class="outline-3">
+<h3 id="org31d5077">Include Usernames in Replies</h3>
+<div class="outline-text-3" id="text-org31d5077">
+<p>
+When checked, FediThready prepends the author's username (e.g.
+<code>@user@instance.social</code>) to each post after the first one in a thread. This
+ensures followers of the person you are replying to can see the whole
+conversation. Disabled by default; automatically enabled when you fill in a
+<b>Reply to post</b> URL.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orgb6ce56c" class="outline-2">
+<h2 id="orgb6ce56c">Tips</h2>
+<div class="outline-text-2" id="text-orgb6ce56c">
+<ul class="org-ul">
+<li><b>Reorder chunks:</b> Use manual dividers (<code>---</code>) to control exactly where
+splits fall, then move text around until the preview looks the way you want.</li>
+<li><b>Long URLs:</b> Mastodon counts URLs as a fixed number of characters (usually 23)
+regardless of their actual length. FediThready does not currently apply
+this shortening, so chunks containing long URLs may appear slightly over the
+limit in the character count but will post fine.</li>
+<li><b>Emoji:</b> Mastodon counts each emoji as one character. FediThready does the
+same, so character counts should match what your Mastodon client shows.</li>
+<li><b>Drafts:</b> FediThready saves your text, content warning, and reply-to URL in
+your browser's local storage. Closing the tab and coming back later
+restores your draft automatically.</li>
+<li><b>Without an account:</b> Every feature except posting works without logging in.
+Use the Copy buttons on each chunk and paste into your Mastodon app manually.</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgde8d8e6" class="outline-2">
+<h2 id="orgde8d8e6">Questions and Feedback</h2>
+<div class="outline-text-2" id="text-orgde8d8e6">
+<p>
+If something is not working, you have a question, or you have a suggestion:
+</p>
+
+<ul class="org-ul">
+<li>File an issue on GitHub:
+<a href="https://github.com/masukomi/fedithready/issues/new">github.com/masukomi/fedithready/issues/new</a></li>
+<li>Drop the creator a message on Mastodon:
+<a href="https://connectified.com/@masukomi">@masukomi@connectified.com</a></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org41f8c95" class="outline-2">
+<h2 id="org41f8c95">Source Code</h2>
+<div class="outline-text-2" id="text-org41f8c95">
+<p>
+The source code can be found at <a href="https://github.com/masukomi/fedithready/">https://github.com/masukomi/fedithready/</a> and is distributed under the MIT license.
+</p>
+
+<p>
+Historically this started out as someone's experiment with early LLM coding tools, was manually reworked by a human, and has since been expanded dramatically via Claude.
+</p>
+
+<p>
+Every attempt has been made to make sure that this code doesn't and can't violate your privacy.
+</p>
+
+<p>
+This is a useful little side project that should never be relied on for anything that could cost you money or security if it goes wrong. If you're not comfortable using things generated by an LLM, then don't use this.
+</p>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: masukomi</p>
+<p class="date">Created: 2026-03-22 Sun 14:10</p>
+</div>
+</body>
+</html>

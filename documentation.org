@@ -1,0 +1,250 @@
+#+TITLE: FediThready Documentation
+#+AUTHOR: masukomi
+#+OPTIONS: toc:2 num:nil
+#+SETUPFILE: html-theme-readtheorg-local.setup
+#+HTML_HEAD_EXTRA: <style>#search-container, #search-container label {color: #b3b3b3; padding: 0.5em;}</style>
+* FediThready Documentation
+
+FediThready splits long text into Mastodon-friendly chunks so you can post a
+thread without hitting the character limit. Everything runs in your browser —
+no account required to split and copy text, and no data ever leaves your
+device except when you choose to post directly to Mastodon.
+
+* Basic Usage
+
+1. Type (or paste) your long text into the *Write Your Text* area.
+2. Watch the *Preview* panel on the right update in real time as FediThready
+   splits your text into post-sized chunks.
+3. Adjust settings as needed (see [[*Settings]] below).
+4. Either:
+   - Click *Copy* on each chunk and paste it into your Mastodon app
+     one post at a time, or
+   - [[*Connecting to Mastodon][Connect to Mastodon]] and post the whole thread in one click.
+
+* Manual Splits
+
+FediThready will automatically split your text at sentence boundaries when
+possible, and at word boundaries otherwise. If you want to control exactly
+where a split happens, insert a divider line on its own line:
+
+- Three or more hyphens: ~---~
+- Three or more underscores: ~___~
+- Three or more asterisks: ~***~
+
+Any of these force a split at that point, regardless of character count. The
+divider itself does not appear in the posted text.
+
+Example:
+
+#+BEGIN_EXAMPLE
+This is the first post in my thread.
+---
+This will be a separate post even though both fit in 500 characters.
+#+END_EXAMPLE
+
+* Content Warnings
+
+Type a content warning into the *optional content warning* field above the
+text area. It applies to every post in the thread. The content warning counts
+toward the character limit on Mastodon, so FediThready subtracts its length
+when calculating how much text fits in each chunk.
+
+When replying to a post that has a content warning, FediThready copies that
+warning into the field automatically (if the field is currently empty) so your
+reply inherits the same warning.
+
+* Connecting to Mastodon
+
+Connecting lets you post your entire thread directly from FediThready with one
+click. FediThready uses OAuth 2.0 — your password is never entered here.
+
+1. Click the green *Log in to post* button.
+2. Enter your Mastodon instance domain — the domain you use to access your
+   account. For example:
+   - If your username is ~@alice@mastodon.social~, enter ~mastodon.social~.
+   - If your username is ~@alice@example.com~ but your profile lives at
+     ~social.example.com/alice~, enter ~social.example.com~.
+3. Click *Authorize*. You will be redirected to your instance to approve
+   access.
+4. After approving, you are returned to FediThready and the button changes to
+   *Post Thread*.
+5. Click *Post Thread* to publish. FediThready posts each chunk as a reply to
+   the previous one, forming a thread automatically.
+
+To disconnect, click the *Disconnect* button. Your access token is removed
+from the browser; you can reconnect at any time.
+
+*Note:* Posting requires FediThready to be served over HTTP or HTTPS (i.e.
+loaded from a web server). If you open the file directly in your browser
+(~file://~), the Copy workflow still works but posting is disabled for
+security reasons. Visit [[https://fedithready.app][fedithready.app]] to use posting.
+
+* Post Visibility
+
+Use the *Visibility* dropdown in the Preview panel to choose who can see your
+posts:
+
+| Option         | Who can see it                                      |
+|----------------+-----------------------------------------------------|
+| Public         | Everyone, appears in public timelines               |
+| Unlisted       | Everyone with a link, not in public timelines       |
+| Followers only | Only your followers                                 |
+| Direct         | Only people @-mentioned in the post                 |
+
+When replying to a post, FediThready automatically matches the visibility of
+the original post (with the exception of *Followers only* — if the original is
+followers-only, FediThready leaves your visibility at whatever you had
+selected, since you may not follow each other). Your previous visibility
+setting is restored when you clear the reply-to URL.
+
+*Direct visibility requirement:* If you select Direct, your first chunk must
+contain at least one ~@username@instance~ mention and the *Include usernames
+in replies* checkbox must be enabled. Otherwise FediThready will alert you
+before posting.
+
+* Replying to a Post
+
+1. Log in to Mastodon (see [[*Connecting to Mastodon]]).
+2. Click *Reply to post…* in the Preview panel to expand the reply section.
+3. Paste the URL of the post you want to reply to.
+4. FediThready looks up the post on your instance and shows a preview of it,
+   including the author, content, and any attached images.
+5. Click *Post Thread* — the first chunk of your thread is sent as a reply to
+   that post, and subsequent chunks chain off one another.
+
+The reply-to URL is saved between sessions so you can continue a draft later.
+Click the ~×~ button next to the URL field, or click *Clear Current Text*, to
+remove it.
+
+** Quoting a Post
+
+After entering a reply-to URL, check *Quote this post instead of replying*.
+FediThready will attempt to quote the post (using Mastodon's quote feature)
+rather than reply to it.
+
+*If the instance or post does not support quoting:* FediThready falls back
+gracefully — it prepends a link to the original post at the start of your
+first chunk instead, so readers can still navigate to it. A warning is shown
+below the checkbox when this fallback will be used.
+
+* Working with Images
+
+FediThready lets you attach images to specific posts in your thread by
+dragging them into the browser window.
+
+** Adding Images
+
+Drag one or more image files from your desktop or file manager anywhere onto
+the FediThready page (or directly onto the text area). For each image:
+
+1. A numbered list entry appears below the text area showing a small thumbnail
+   of the image.
+2. An *image reference* — a picture-frame emoji followed by a number in square
+   brackets, e.g. ~🖼[1]~ — is inserted into your text at the cursor position.
+   If the text area does not have focus, the indicator is appended at the end
+   of your text.
+
+You can drag multiple images at once; each gets its own number in sequence.
+
+** How Image References Work
+
+The number inside the brackets corresponds to the numbered entry in the list
+below the text area. The indicator tells FediThready which image should be
+attached to which post:
+
+- Whatever chunk (post) the image reference ends up in is the post that will
+  have the image attached to it when the thread is sent to Mastodon.
+- If you write ~🖼[1]~ somewhere in your first paragraph and ~🖼[2]~ in the
+  second, image 1 is attached to post 1 and image 2 is attached to post 2.
+- You can move the image reference anywhere in your text to change which post the
+  image is attached to.
+- Multiple indicators in the same chunk attach multiple images to that post.
+
+The indicators are invisible in the Preview panel and are not included in the
+posted text — they are stripped before anything is sent to Mastodon.
+
+Image reference characters are *not counted* toward the character limit, so
+adding an indicator does not make a chunk shorter.
+
+** Alt Text
+
+Beside each thumbnail in the image list there is a text area labeled
+~Alt Text…~. Enter a description of the image here. The description is sent
+to Mastodon as the media attachment's alt text, which is read by screen
+readers and shown when images cannot be displayed. Writing good alt text is
+an accessibility best practice.
+
+** Removing Images
+
+Click the ~✕~ button to the right of a thumbnail to remove that image.
+FediThready removes the corresponding indicator from your text and renumbers
+any remaining images and indicators to keep them consistent.
+
+** Mastodon Image Limits
+
+Mastodon allows a maximum of *4 media attachments per post*. If a single chunk
+has more than 4 image indicators, FediThready shows an error below that
+chunk's preview and blocks posting until you move or remove indicators so no
+chunk exceeds 4.
+
+* Settings
+
+** Character Limit
+
+The default is 500 characters, which is the standard Mastodon limit. If your
+server allows longer posts (some instances set 1000 or more), change this
+number to match. Click *Apply Settings* after changing it.
+
+** Include Counter
+
+When checked, a pagination suffix like ~🧵 1/3~ is appended to each post so
+readers know how many posts are in the thread. Enabled by default.
+
+** Attempt Sentence Endings
+
+When checked, FediThready tries to split at the end of a sentence rather than
+mid-sentence. If a sentence ending falls within 60 characters of the chunk
+boundary, the split happens there instead of at the last space. Enabled by
+default.
+
+** Include Usernames in Replies
+
+When checked, FediThready prepends the author's username (e.g.
+~@user@instance.social~) to each post after the first one in a thread. This
+ensures followers of the person you are replying to can see the whole
+conversation. Disabled by default; automatically enabled when you fill in a
+*Reply to post* URL.
+
+* Tips
+
+- *Reorder chunks:* Use manual dividers (~---~) to control exactly where
+  splits fall, then move text around until the preview looks the way you want.
+- *Long URLs:* Mastodon counts URLs as a fixed number of characters (usually 23)
+  regardless of their actual length. FediThready does not currently apply
+  this shortening, so chunks containing long URLs may appear slightly over the
+  limit in the character count but will post fine.
+- *Emoji:* Mastodon counts each emoji as one character. FediThready does the
+  same, so character counts should match what your Mastodon client shows.
+- *Drafts:* FediThready saves your text, content warning, and reply-to URL in
+  your browser's local storage. Closing the tab and coming back later
+  restores your draft automatically.
+- *Without an account:* Every feature except posting works without logging in.
+  Use the Copy buttons on each chunk and paste into your Mastodon app manually.
+
+* Questions and Feedback
+
+If something is not working, you have a question, or you have a suggestion:
+
+- File an issue on GitHub:
+  [[https://github.com/masukomi/fedithready/issues/new][github.com/masukomi/fedithready/issues/new]]
+- Drop the creator a message on Mastodon:
+  fedi:@masukomi@connectified.com
+
+* Source Code
+The source code can be found at [[https://github.com/masukomi/fedithready/]] and is distributed under the MIT license.
+
+Historically this started out as someone's experiment with early LLM coding tools, was manually reworked by a human, and has since been expanded dramatically via Claude.
+
+Every attempt has been made to make sure that this code doesn't and can't violate your privacy.
+
+This is a useful little side project that should never be relied on for anything that could cost you money or security if it goes wrong. If you're not comfortable using things generated by an LLM, then don't use this.
