@@ -289,9 +289,29 @@ const MastodonAPI = (function() {
         return data.statuses[0];
     }
 
+    // Upload a media file, returns the attachment object (with .id)
+    async function uploadMedia(instance, accessToken, file, description = '') {
+        const instanceURL = getInstanceURL(instance);
+        const formData = new FormData();
+        formData.append('file', file);
+        if (description) {
+            formData.append('description', description);
+        }
+        const response = await fetch(`${instanceURL}/api/v1/media`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${accessToken}` },
+            body: formData
+        });
+        if (!response.ok) {
+            throw new Error(`Failed to upload media: ${await response.text()}`);
+        }
+        return await response.json();
+    }
+
     // Post a thread (array of chunks)
     // quotedStatusId is used for quote posts (only on the first post of the thread)
-    async function postThread(instance, accessToken, chunks, visibility, spoilerText, inReplyToId = null, quotedStatusId = null) {
+    // mediaIdsPerChunk is an array of string[] (pre-uploaded media IDs per chunk)
+    async function postThread(instance, accessToken, chunks, visibility, spoilerText, inReplyToId = null, quotedStatusId = null, mediaIdsPerChunk = []) {
         let previousId = inReplyToId;
         const postedStatuses = [];
 
@@ -313,6 +333,12 @@ const MastodonAPI = (function() {
                     params.quoted_status_id = quotedStatusId;
                 } else if (previousId) {
                     params.in_reply_to_id = previousId;
+                }
+
+                // Attach pre-uploaded media IDs if any
+                const mediaIds = mediaIdsPerChunk[i] || [];
+                if (mediaIds.length > 0) {
+                    params.media_ids = mediaIds;
                 }
 
                 const status = await postStatus(instance, accessToken, params);
@@ -369,6 +395,7 @@ const MastodonAPI = (function() {
         isFileProtocol,
         postStatus,
         postThread,
+        uploadMedia,
         getCustomEmojis,
         normalizeInstance,
         resolvePostUrl,

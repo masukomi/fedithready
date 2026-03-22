@@ -42,6 +42,39 @@ $(document).ready(function() {
         return getTrueTextLength(cw) + 1;
     }
 
+    function stripImageIndicators(text) {
+        return text.replace(/🖼\[\d+\]/g, '');
+    }
+
+    // Find the UTF-16 string index at which effectiveLimit non-indicator chars have been seen.
+    // Used by findSlicePoint so image indicators don't count toward the character limit.
+    function findSliceEndForEffectiveLimit(text, effectiveLimit) {
+        let effective = 0;
+        let i = 0;
+        while (i < text.length) {
+            // Detect 🖼 (U+1F5BC, encoded as surrogate pair D83D DDBC) followed by [digits]
+            if (text.codePointAt(i) === 0x1F5BC && i + 2 < text.length && text[i + 2] === '[') {
+                let j = i + 3;
+                while (j < text.length && text[j] !== ']') j++;
+                if (j < text.length) { // found closing ]
+                    i = j + 1;
+                    continue;
+                }
+            }
+            if (effective >= effectiveLimit) break;
+            const code = text.codePointAt(i);
+            i += (code > 0xFFFF) ? 2 : 1;
+            effective++;
+        }
+        return i;
+    }
+
+    // Returns sorted array of image numbers referenced in a chunk (e.g. [1, 3])
+    function getImageNumbersInChunk(text) {
+        const matches = text.match(/🖼\[(\d+)\]/g) || [];
+        return matches.map(m => parseInt(m.match(/\d+/)[0]));
+    }
+
     // Extract all @username@domain mentions from text
     function extractUsernames(text) {
         const usernameRegex = /@\S+@\S+/g;
@@ -70,6 +103,9 @@ $(document).ready(function() {
 
     // Cached reply-to data to avoid re-resolving on post
     let cachedReplyTo = null;  // { url, resolvedId, authorAcct, authorDisplayName, quoteApproval }
+
+    // Image attachments: array of {file, altText, objectUrl} (index+1 = indicator number)
+    let images = [];
 
     // Check if quoting is allowed based on quote_approval.current_user
     function isQuotingAllowed(quoteApproval) {
@@ -237,13 +273,13 @@ $(document).ready(function() {
         }
         // Subtract content warning length (+ 1 for separation) if present
         charLimit -= getContentWarningLength();
-        if (getTrueTextLength(text) <= charLimit) {
+        if (getTrueTextLength(stripImageIndicators(text)) <= charLimit) {
             // the current section of this chunk of the manual chunk
             // is already shorter than the max
             return {"sliceEnd": text.length, "reason": "end"};
         }
 
-        let sliceEnd = charLimit;
+        let sliceEnd = findSliceEndForEffectiveLimit(text, charLimit);
         let lastSentenceEnd = attemptSentenceEndings() ? getLastSentenceEnd(text.substring(0,maxChars)) : null;
         if (lastSentenceEnd === null){ lastSentenceEnd = text.length }
         let lastSpace = text.lastIndexOf(" ", sliceEnd);
@@ -482,8 +518,145 @@ $(document).ready(function() {
         $('#quotePostCheckbox').prop('checked', false).prop('disabled', true);
         $('#quotePostWarning').hide();
         $('#visibilitySelect').val('public')
+        clearImages();
         $('#inputText').trigger('input');
     }
+
+    function clearImages() {
+        images.forEach(img => { if (img) URL.revokeObjectURL(img.objectUrl); });
+        images = [];
+        $('#imageReferences').empty().hide();
+    }
+
+    function rebuildImageReferencesList() {
+        const $list = $('#imageReferences');
+        $list.empty();
+        images.forEach((img, idx) => {
+            if (!img) return;
+            const num = idx + 1;
+            const altEsc = escapeHTML(img.altText || '');
+            const $li = $(`
+                <li data-image-num="${num}">
+                    <div class="image-ref-row">
+                        <img class="image-ref-thumb" src="${img.objectUrl}" alt="Image ${num}">
+                        <textarea class="form-control image-ref-alt"
+                                  rows="1"
+                                  placeholder="Alt Text…"
+                                  data-image-num="${num}">${altEsc}</textarea>
+                        <button class="image-ref-remove" data-image-num="${num}" aria-label="Remove image ${num}">✕</button>
+                    </div>
+                </li>
+            `);
+            $list.append($li);
+        });
+        if (images.length > 0) {
+            $list.show();
+        } else {
+            $list.hide();
+        }
+    }
+
+    function addImage(file) {
+        const objectUrl = URL.createObjectURL(file);
+        images.push({ file, altText: '', objectUrl });
+        const num = images.length;
+        const indicator = `🖼[${num}]`;
+
+        const $textarea = $('#inputText');
+        const textarea = $textarea[0];
+        if (document.activeElement === textarea) {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const before = textarea.value.substring(0, start);
+            const after = textarea.value.substring(end);
+            textarea.value = before + indicator + after;
+            const newPos = start + indicator.length;
+            textarea.selectionStart = textarea.selectionEnd = newPos;
+        } else {
+            const current = textarea.value;
+            if (current.length > 0 && !current.endsWith('\n')) {
+                textarea.value = current + '\n' + indicator;
+            } else {
+                textarea.value = current + indicator;
+            }
+        }
+
+        const altEsc = escapeHTML('');
+        const $li = $(`
+            <li data-image-num="${num}">
+                <div class="image-ref-row">
+                    <img class="image-ref-thumb" src="${objectUrl}" alt="Image ${num}">
+                    <textarea class="form-control image-ref-alt"
+                              rows="1"
+                              placeholder="Alt Text…"
+                              data-image-num="${num}">${altEsc}</textarea>
+                    <button class="image-ref-remove" data-image-num="${num}" aria-label="Remove image ${num}">✕</button>
+                </div>
+            </li>
+        `);
+        $('#imageReferences').append($li).show();
+        $textarea.trigger('input');
+    }
+
+    function removeImage(num) {
+        const idx = num - 1;
+        const img = images[idx];
+        if (!img) return;
+
+        URL.revokeObjectURL(img.objectUrl);
+        images.splice(idx, 1);
+
+        // Remove this indicator and renumber subsequent ones
+        const $textarea = $('#inputText');
+        let text = $textarea.val();
+        text = text.replace(new RegExp('\\n?🖼\\[' + num + '\\]', 'g'), '');
+        for (let i = idx; i < images.length; i++) {
+            const oldNum = i + 2;
+            const newNum = i + 1;
+            text = text.replace(new RegExp('🖼\\[' + oldNum + '\\]', 'g'), `🖼[${newNum}]`);
+        }
+        $textarea.val(text);
+
+        rebuildImageReferencesList();
+        $textarea.trigger('input');
+    }
+
+    // Alt text live update
+    $(document).on('input', '.image-ref-alt', function() {
+        const num = parseInt($(this).data('image-num'));
+        const img = images[num - 1];
+        if (img) img.altText = $(this).val();
+    });
+
+    // Remove image button
+    $(document).on('click', '.image-ref-remove', function() {
+        removeImage(parseInt($(this).data('image-num')));
+    });
+
+    // Drag-and-drop image handling
+    document.addEventListener('dragover', function(e) {
+        if (e.dataTransfer && e.dataTransfer.types && e.dataTransfer.types.includes('Files')) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+        }
+    });
+
+    document.addEventListener('drop', function(e) {
+        const files = e.dataTransfer ? [...e.dataTransfer.files].filter(f => f.type.startsWith('image/')) : [];
+        if (files.length === 0) return;
+        e.preventDefault();
+        files.forEach(file => addImage(file));
+    });
+
+    $('#inputText').on('dragover', function(e) {
+        if (e.originalEvent.dataTransfer && e.originalEvent.dataTransfer.types.includes('Files')) {
+            $(this).addClass('drag-over');
+        }
+    });
+
+    $('#inputText').on('dragleave drop', function() {
+        $(this).removeClass('drag-over');
+    });
 
     // Update reply-to status message
     function updateReplyToStatus(message, isError) {
@@ -599,12 +772,15 @@ $(document).ready(function() {
                 chunk.text = "…" + chunk.text;
             }
 
-            // Prepend username prefix to subsequent posts (not the first one)
-            let displayText = chunk.text;
-            let copyText = chunk.text;
+            // Collect image numbers before stripping indicators
+            const chunkImageNums = getImageNumbersInChunk(chunk.text);
+
+            // Strip image indicators from display and copy text
+            let displayText = stripImageIndicators(chunk.text);
+            let copyText = stripImageIndicators(chunk.text);
             if (index > 0 && usernamePrefix) {
-                displayText = usernamePrefix + chunk.text;
-                copyText = usernamePrefix + chunk.text;
+                displayText = usernamePrefix + displayText;
+                copyText = usernamePrefix + copyText;
             }
 
             const formattedChunk = formatChunkText(displayText);
@@ -615,14 +791,32 @@ $(document).ready(function() {
             }
             let copyButtonText = getCopyText(index, totalPosts);
 
-            // Calculate character count from the full post content
-            // Include content warning length + 1 if present
+            // Calculate character count (indicators already stripped from copyText)
             const cwLength = getContentWarningLength();
             const charCount = getTrueTextLength(copyText + paginationText) + cwLength;
 
             // Build content warning HTML if present
             const cwHtml = contentWarning ?
                 `<div class="content-warning-display">${escapeHTML(contentWarning)}</div>` : '';
+
+            // Build image thumbnails HTML for this chunk
+            let imagesHtml = '';
+            if (chunkImageNums.length > 0) {
+                const thumbsHtml = chunkImageNums.map(n => {
+                    const img = images[n - 1];
+                    if (!img) return '';
+                    const altEsc = escapeHTML(img.altText || '');
+                    return `<img class="chunk-image-thumb" src="${img.objectUrl}" alt="${altEsc}" title="${altEsc || 'Image ' + n}">`;
+                }).join('');
+                const invalidNums = chunkImageNums.filter(n => !images[n - 1]);
+                const invalidErrorHtml = invalidNums.map(n =>
+                    `<div class="chunk-images-error">⚠️ 🖼[${n}] doesn't reference a known image.</div>`
+                ).join('');
+                const tooManyErrorHtml = chunkImageNums.length > 4
+                    ? `<div class="chunk-images-error">⚠️ Mastodon doesn't support more than 4 media attachments per post. This chunk has ${chunkImageNums.length} images.</div>`
+                    : '';
+                imagesHtml = `<div class="chunk-images">${thumbsHtml}${invalidErrorHtml}${tooManyErrorHtml}</div>`;
+            }
 
             $('#previewArea').append(`
                 <div class="post-container">
@@ -637,6 +831,7 @@ $(document).ready(function() {
                         ${(paginationText && totalPosts > 1) ? formattedChunk.replace(/(<br\s*\/?>)+$/, '') : formattedChunk}
                         ${(paginationText && totalPosts > 1) ? `<br><span class="post-number">${paginationText}</span>` : ''}
                     </div>
+                    ${imagesHtml}
                 </div>
             `);
         // });
@@ -742,7 +937,8 @@ $(document).ready(function() {
         $('#postStatus').hide();
     }
 
-    // Get chunks formatted for posting (with pagination and username prefixes)
+    // Get chunks and media formatted for posting (with pagination and username prefixes)
+    // Returns { chunks: string[], mediaPerChunk: {file, altText}[][] }
     function getChunksForPosting() {
         const text = $('#inputText').val();
         const chunks = splitText(text) || [];
@@ -751,6 +947,7 @@ $(document).ready(function() {
         const usernamePrefix = chunks.usernamePrefix || "";
 
         const formattedChunks = [];
+        const mediaPerChunk = [];
 
         for (let index = 0; index < chunks.length; index++) {
             let chunk = chunks[index];
@@ -763,17 +960,22 @@ $(document).ready(function() {
                 chunk.text = "…" + chunk.text;
             }
 
-            // Build the full text for this chunk
+            // Collect images for this chunk before stripping indicators
+            const imageNums = getImageNumbersInChunk(chunk.text);
+            const chunkMedia = imageNums
+                .map(n => images[n - 1])
+                .filter(img => img !== null && img !== undefined);
+            mediaPerChunk.push(chunkMedia);
+
+            // Build the full text for this chunk (strip image indicators)
             let fullText = "";
 
-            // Prepend username prefix to subsequent posts (not the first one)
             if (index > 0 && usernamePrefix) {
                 fullText += usernamePrefix;
             }
 
-            fullText += chunk.text;
+            fullText += stripImageIndicators(chunk.text);
 
-            // Add pagination
             if (paginationEnabled && totalPosts > 1) {
                 fullText += getPaginationText(index, totalPosts);
             }
@@ -781,7 +983,7 @@ $(document).ready(function() {
             formattedChunks.push(fullText);
         }
 
-        return formattedChunks;
+        return { chunks: formattedChunks, mediaPerChunk };
     }
 
     // Handle OAuth callback on page load
@@ -805,10 +1007,26 @@ $(document).ready(function() {
             return;
         }
 
-        const chunks = getChunksForPosting();
+        const { chunks, mediaPerChunk } = getChunksForPosting();
         if (chunks.length === 0) {
             showErrorModal('No text to post');
             return;
+        }
+
+        // Validate image references and attachment limits
+        const rawText = $('#inputText').val();
+        const allIndicatedNums = getImageNumbersInChunk(rawText);
+        const invalidRefs = allIndicatedNums.filter(n => !images[n - 1]);
+        if (invalidRefs.length > 0) {
+            const list = invalidRefs.map(n => `🖼[${n}]`).join(', ');
+            showErrorModal(`The following image references don't correspond to any attached image: ${list}. Please remove them or drag in the missing images.`);
+            return;
+        }
+        for (let i = 0; i < mediaPerChunk.length; i++) {
+            if (mediaPerChunk[i].length > 4) {
+                showErrorModal(`Post ${i + 1} has ${mediaPerChunk[i].length} images attached. Mastodon doesn't support more than 4 media attachments per post.`);
+                return;
+            }
         }
 
         const visibility = $('#visibilitySelect').val();
@@ -873,8 +1091,39 @@ $(document).ready(function() {
             }
         }
 
-        // Disable button and show posting status
+        // Disable button and upload any media attachments
         $('#mastodonButton').prop('disabled', true);
+
+        const resolvedMediaPerChunk = [];
+        const hasMedia = mediaPerChunk.some(m => m.length > 0);
+        if (hasMedia) {
+            showPostStatus('Uploading images...', false);
+        }
+        try {
+            for (let i = 0; i < mediaPerChunk.length; i++) {
+                const chunkMedia = mediaPerChunk[i];
+                if (chunkMedia.length > 0) {
+                    showPostStatus(`Uploading images for post ${i + 1} of ${chunks.length}...`, false);
+                    const mediaIds = [];
+                    for (const media of chunkMedia) {
+                        const attachment = await MastodonAPI.uploadMedia(
+                            credentials.instance, credentials.accessToken,
+                            media.file, media.altText || ''
+                        );
+                        mediaIds.push(attachment.id);
+                    }
+                    resolvedMediaPerChunk.push(mediaIds);
+                } else {
+                    resolvedMediaPerChunk.push([]);
+                }
+            }
+        } catch (error) {
+            hidePostStatus();
+            showErrorModal('Failed to upload image: ' + error.message);
+            $('#mastodonButton').prop('disabled', false);
+            return;
+        }
+
         showPostStatus('Posting...', false);
 
         try {
@@ -885,7 +1134,8 @@ $(document).ready(function() {
                 visibility,
                 contentWarning,
                 replyToId,
-                quotedStatusId
+                quotedStatusId,
+                resolvedMediaPerChunk
             );
 
             if (result.success) {
