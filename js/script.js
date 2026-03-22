@@ -540,7 +540,6 @@ $(document).ready(function() {
                     <div class="image-ref-row">
                         <img class="image-ref-thumb" src="${img.objectUrl}" alt="Image ${num}">
                         <textarea class="form-control image-ref-alt"
-                                  rows="1"
                                   placeholder="Alt Text…"
                                   data-image-num="${num}">${altEsc}</textarea>
                         <button class="image-ref-remove" data-image-num="${num}" aria-label="Remove image ${num}">✕</button>
@@ -587,7 +586,6 @@ $(document).ready(function() {
                 <div class="image-ref-row">
                     <img class="image-ref-thumb" src="${objectUrl}" alt="Image ${num}">
                     <textarea class="form-control image-ref-alt"
-                              rows="1"
                               placeholder="Alt Text…"
                               data-image-num="${num}">${altEsc}</textarea>
                     <button class="image-ref-remove" data-image-num="${num}" aria-label="Remove image ${num}">✕</button>
@@ -621,8 +619,10 @@ $(document).ready(function() {
         $textarea.trigger('input');
     }
 
-    // Alt text live update
-    $(document).on('input', '.image-ref-alt', function() {
+    // Alt text live update — stop propagation so the input event doesn't bubble
+    // up to the document-level handler and trigger unrelated input processing.
+    $(document).on('input', '.image-ref-alt', function(e) {
+        e.stopImmediatePropagation();
         const num = parseInt($(this).data('image-num'));
         const img = images[num - 1];
         if (img) img.altText = $(this).val();

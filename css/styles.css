@@ -480,7 +480,9 @@ p.status-error {
     flex: 1;
     font-size: 0.85em;
     resize: vertical;
+    height: 3em;
     min-height: 2.2em;
+    overflow-y: auto;
 }
 
 .image-ref-remove {
