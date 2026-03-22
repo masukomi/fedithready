@@ -1,3 +1,9 @@
+* v1.11.0
+
+** [added]
+- now suports adding images to the thread
+- added separated documentation
+
 * v1.10.0
 
 ** [added]
