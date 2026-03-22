@@ -1,3 +1,8 @@
+* v1.10.1
+
+** [fixed]
+- cursor stayed at position 0 in alt text
+
 * v1.11.0
 
 ** [added]
